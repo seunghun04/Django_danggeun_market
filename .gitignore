@@ -20,3 +20,9 @@ media/
 # OS
 .DS_Store
 Thumbs.db
+
+.env
+.venv/
+.venv311/
+__pycache__/
+*.pyc
