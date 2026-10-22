@@ -1,22 +1,43 @@
 from django.contrib import admin
 
-from .models import Profile
+from .models import (
+    Product,
+    Wishlist,
+    ChatRoom,
+    ChatMessage,
+)
 
 
-@admin.register(Profile)
-class ProfileAdmin(admin.ModelAdmin):
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
 
     list_display = [
         "id",
-        "user",
-        "birth_date",
-        "phone",
+        "title",
+        "seller",
+        "region",
+        "price",
+        "negotiable",
+        "view_count",
+        "created_at",
     ]
 
     search_fields = [
-        "user__username",
-        "user__first_name",
-        "phone",
+        "title",
+        "content",
+        "seller__username",
+        "region",
     ]
+
+    list_filter = [
+        "negotiable",
+        "region",
+        "created_at",
+    ]
+
+
+admin.site.register(Wishlist)
+admin.site.register(ChatRoom)
+admin.site.register(ChatMessage)
 
 # Register your models here.

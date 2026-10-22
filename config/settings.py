@@ -35,15 +35,19 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
 
-    'market',
+INSTALLED_APPS = [
+
+    "daphne",
+
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+
+    "market",
 ]
 
 MIDDLEWARE = [
@@ -77,6 +81,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = "config.asgi.application"
 
 
 # Database
@@ -116,6 +121,16 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+CHANNEL_LAYERS = {
+
+    "default": {
+
+        "BACKEND":
+            "channels.layers.InMemoryChannelLayer"
+
+    }
+
+}
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
