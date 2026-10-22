@@ -131,6 +131,12 @@ CHANNEL_LAYERS = {
     }
 
 }
+
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '192.168.5.162'
+]
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
