@@ -23,7 +23,53 @@ from .forms import SignUpForm
 
 
 def main(request):
-    return render(request, 'market/main.html')
+
+    search_query = request.GET.get("q", "").strip()
+    sort = request.GET.get("sort", "latest")
+
+    # 등록된 상품 전체 조회
+    products = Product.objects.select_related("seller").all()
+
+    # 검색어가 있으면 필터링
+    if search_query:
+        products = products.filter(
+            Q(title__icontains=search_query) |
+            Q(content__icontains=search_query) |
+            Q(region__icontains=search_query)
+        )
+
+    # 정렬
+    if sort == "popular":
+        products = products.order_by(
+            "-view_count",
+            "-created_at"
+        )
+    else:
+        sort = "latest"
+        products = products.order_by("-created_at")
+
+    # 검색된 상품 개수
+    product_count = products.count()
+
+    # 히어로 영역에 보여줄 최신 상품
+    featured_product = (
+        Product.objects
+        .order_by("-created_at")
+        .first()
+    )
+
+    return render(
+        request,
+        "market/main.html",
+        {
+            "products": products,
+            "product_count": product_count,
+            "featured_product": featured_product,
+            "q": search_query,
+            "sort": sort,
+        }
+    )
+
 
 
 def signup(request):

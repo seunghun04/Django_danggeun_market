@@ -1,34 +1,53 @@
 
-<!DOCTYPE html>
-<html lang="ko">
+{% extends "market/base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>상품 삭제</title>
-</head>
+{% block title %}상품 삭제 | Poly Market{% endblock %}
 
-<body>
+{% block content %}
 
-<h1>상품 삭제</h1>
+<div class="pm-page">
 
-<p>
-    "{{ product.title }}" 상품을 정말 삭제하시겠습니까?
-</p>
+    <div class="container">
 
-<form method="post">
+        <div class="pm-delete-card">
 
-    {% csrf_token %}
+            <div class="pm-delete-icon">🗑️</div>
 
-    <button type="submit">
-        삭제
-    </button>
+            <h1>상품을 삭제하시겠어요?</h1>
 
-</form>
+            <p>
+                <strong>"{{ product.title }}"</strong>
+                상품을 정말 삭제하시겠습니까?
+            </p>
 
-<a href="{% url 'product_detail' product.id %}">
-    취소
-</a>
+            <p class="pm-delete-warning">
+                삭제한 상품은 복구할 수 없습니다.
+            </p>
 
-</body>
+            <form method="post">
 
-</html>
+                {% csrf_token %}
+
+                <div class="pm-delete-actions">
+
+                    <a href="{% url 'product_detail' product.id %}"
+                       class="btn btn-outline">
+                        취소
+                    </a>
+
+                    <button type="submit"
+                            class="btn pm-danger-button">
+                        삭제하기
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

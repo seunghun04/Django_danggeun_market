@@ -1,134 +1,180 @@
 
-<!DOCTYPE html>
-<html lang="ko">
+{% extends "market/base.html" %}
+{% load humanize %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>{{ product.title }}</title>
-</head>
+{% block title %}{{ product.title }} | Poly Market{% endblock %}
 
-<body>
+{% block content %}
 
-<a href="{% url 'product_list' %}">
-    상품목록
-</a>
+<div class="pm-page">
 
-<h1>
-    {{ product.title }}
-</h1>
+    <div class="container">
 
-{% if product.image_url %}
+        <div class="pm-breadcrumb">
+            <a href="{% url 'main' %}">홈</a>
+            <span>›</span>
+            <a href="{% url 'product_list' %}">중고거래</a>
+            <span>›</span>
+            <span>상품 상세</span>
+        </div>
 
-    <img
-        src="{{ product.image_url }}"
-        width="400"
-    >
+        <div class="pm-detail-layout">
 
-{% endif %}
+            <!-- 상품 대표 이미지 -->
+            <div class="pm-detail-image">
 
-<p>
-    판매자:
-    {{ product.seller.username }}
-</p>
+                <!-- 사진! Supabase Storage 이미지 -->
+                {% if product.image_url %}
 
-<p>
-    판매지역:
-    {{ product.region }}
-</p>
+                    <img src="{{ product.image_url }}"
+                         alt="{{ product.title }}">
 
-<p>
-    판매가격:
-    {{ product.price }}원
-</p>
-
-<p>
-    네고:
-
-    {% if product.negotiable %}
-        가능
-    {% else %}
-        불가능
-    {% endif %}
-</p>
-
-<p>
-    {{ product.content }}
-</p>
-
-<hr>
-
-<p>
-    조회수:
-    {{ product.view_count }}
-</p>
-
-<p>
-    찜:
-    {{ product.wish_count }}
-</p>
-
-<p>
-    채팅 시작:
-    {{ product.chat_count }}명
-</p>
-
-<hr>
-
-{% if user.is_authenticated %}
-
-    {% if user == product.seller %}
-
-        <p>
-            내가 작성한 게시글입니다.
-        </p>
-
-        <a href="{% url 'product_update' product.id %}">
-            수정하기
-        </a>
-
-        <a href="{% url 'product_delete' product.id %}">
-            삭제하기
-        </a>
-
-    {% else %}
-
-        <form
-            method="post"
-            action="{% url 'wishlist_toggle' product.id %}"
-        >
-
-            {% csrf_token %}
-
-            <button type="submit">
-
-                {% if is_wished %}
-                    찜 취소
                 {% else %}
-                    찜하기
+
+                    <div class="pm-no-image">📦</div>
+
                 {% endif %}
 
-            </button>
+            </div>
 
-        </form>
+            <!-- 상품 정보 -->
+            <div class="pm-detail-panel">
 
-        <p>
+                <span class="pm-page-label">
+                    PRODUCT DETAIL
+                </span>
 
-            <a href="{% url 'chat_start' product.id %}">
-                판매자와 채팅하기
-            </a>
+                <h1>{{ product.title }}</h1>
 
-        </p>
+                <strong class="pm-detail-price">
+                    {{ product.price|intcomma }}원
+                </strong>
 
-    {% endif %}
+                <div class="pm-seller-box">
 
-{% else %}
+                    <div class="pm-seller-avatar">
+                        {{ product.seller.username|first|upper }}
+                    </div>
 
-    <p>
-        찜과 채팅을 사용하려면 로그인하세요.
-    </p>
+                    <div>
+                        <strong>{{ product.seller.username }}</strong>
+                        <p>Poly Market 판매자</p>
+                    </div>
 
-{% endif %}
+                </div>
 
-</body>
+                <div class="pm-detail-info">
 
-</html>
+                    <div>
+                        <span>판매 지역</span>
+                        <strong>{{ product.region }}</strong>
+                    </div>
+
+                    <div>
+                        <span>가격 협의</span>
+                        <strong>
+                            {% if product.negotiable %}
+                                네고 가능
+                            {% else %}
+                                네고 불가능
+                            {% endif %}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>등록일</span>
+                        <strong>
+                            {{ product.created_at|date:"Y.m.d" }}
+                        </strong>
+                    </div>
+
+                </div>
+
+                <div class="pm-detail-stats">
+
+                    <span>👁 조회 {{ product.view_count }}</span>
+                    <span>♡ 찜 {{ product.wish_count }}</span>
+                    <span>💬 채팅 {{ product.chat_count }}</span>
+
+                </div>
+
+                <!-- 기존 Django 기능 유지 -->
+                <div class="pm-detail-actions">
+
+                    {% if user.is_authenticated %}
+
+                        {% if user == product.seller %}
+
+                            <a href="{% url 'product_update' product.id %}"
+                               class="btn btn-primary">
+                                상품 수정하기
+                            </a>
+
+                            <a href="{% url 'product_delete' product.id %}"
+                               class="btn btn-outline">
+                                상품 삭제하기
+                            </a>
+
+                        {% else %}
+
+                            <form method="post"
+                                  action="{% url 'wishlist_toggle' product.id %}">
+
+                                {% csrf_token %}
+
+                                <button type="submit"
+                                        class="btn btn-outline">
+
+                                    {% if is_wished %}
+                                        ♥ 찜 취소
+                                    {% else %}
+                                        ♡ 찜하기
+                                    {% endif %}
+
+                                </button>
+
+                            </form>
+
+                            <a href="{% url 'chat_start' product.id %}"
+                               class="btn btn-primary">
+                                💬 판매자와 채팅하기
+                            </a>
+
+                        {% endif %}
+
+                    {% else %}
+
+                        <a href="{% url 'login' %}"
+                           class="btn btn-primary">
+                            로그인하고 거래하기
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- 상품 설명 -->
+        <section class="pm-description-card">
+
+            <h2>상품 설명</h2>
+
+            <div class="pm-description-content">
+                {{ product.content|linebreaks }}
+            </div>
+
+        </section>
+
+        <a href="{% url 'product_list' %}"
+           class="pm-text-link">
+            ← 상품 목록으로 돌아가기
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

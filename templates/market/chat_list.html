@@ -1,61 +1,331 @@
-<!DOCTYPE html>
-<html lang="ko">
 
-<head>
-    <meta charset="UTF-8">
-    <title>내 채팅</title>
-</head>
+{% extends "market/base.html" %}
+{% load humanize %}
 
-<body>
+{% block title %}내 채팅 | Poly Market{% endblock %}
 
-<h1>내 채팅</h1>
+{% block content %}
 
-<a href="{% url 'product_list' %}">
-    상품 목록
-</a>
+<section class="pm-inbox-page">
 
-<hr>
+    <div class="container pm-inbox-container">
 
-{% for room in rooms %}
+        <!-- 상단 제목 -->
+        <div class="pm-inbox-heading">
 
-    <div>
+            <div>
 
-        <h3>
-            {{ room.product.title }}
-        </h3>
+                <span class="pm-page-label">
+                    MY CONVERSATIONS
+                </span>
 
-        {% if user == room.seller %}
+                <h1>
+                    내 채팅
+                    <span>{{ rooms|length }}</span>
+                </h1>
 
-            <p>
-                상대방:
-                {{ room.buyer.username }}
-            </p>
+                <p>
+                    이웃과 나눈 거래 대화를 확인해 보세요.
+                </p>
 
-        {% else %}
+            </div>
 
-            <p>
-                상대방:
-                {{ room.seller.username }}
-            </p>
+            <div class="pm-inbox-heading-icon">
+                💬
+            </div>
 
-        {% endif %}
+        </div>
 
-        <a href="{% url 'chat_room' room.id %}">
-            채팅방 입장
-        </a>
+
+        <!-- 채팅 목록 영역 -->
+        <div class="pm-inbox-card">
+
+            <!-- 검색 영역 -->
+            <div class="pm-inbox-toolbar">
+
+                <div class="pm-inbox-search">
+
+                    <span>🔍</span>
+
+                    <input
+                        type="search"
+                        id="chat-list-search"
+                        placeholder="상품명 또는 상대방 검색"
+                        aria-label="채팅방 검색"
+                    >
+
+                </div>
+
+                <span class="pm-inbox-count">
+                    총 {{ rooms|length }}개의 채팅방
+                </span>
+
+            </div>
+
+
+            {% if rooms %}
+
+                <div class="pm-conversation-list">
+
+                    {% for room in rooms %}
+
+                        {% with last_message=room.messages.last %}
+
+                        <!-- 채팅방 카드 -->
+                        <a
+                            href="{% url 'chat_room' room.id %}"
+                            class="pm-conversation-item"
+                            data-search="{{ room.product.title }} {% if request.user == room.seller %}{{ room.buyer.username }}{% else %}{{ room.seller.username }}{% endif %}"
+                        >
+
+                            <!-- 상품 사진 -->
+                            <!-- 사진! Supabase Storage -->
+                            <div class="pm-conversation-image">
+
+                                {% if room.product.image_url %}
+
+                                    <img
+                                        src="{{ room.product.image_url }}"
+                                        alt="{{ room.product.title }}"
+                                        loading="lazy"
+                                    >
+
+                                {% else %}
+
+                                    <div class="pm-conversation-no-image">
+                                        📦
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- 채팅 정보 -->
+                            <div class="pm-conversation-content">
+
+                                <div class="pm-conversation-top">
+
+                                    <!-- 상대방 이름 -->
+                                    <div class="pm-conversation-user">
+
+                                        <span class="pm-conversation-avatar">
+
+                                            {% if request.user == room.seller %}
+                                                {{ room.buyer.username|first|upper }}
+                                            {% else %}
+                                                {{ room.seller.username|first|upper }}
+                                            {% endif %}
+
+                                        </span>
+
+                                        <strong>
+
+                                            {% if request.user == room.seller %}
+                                                {{ room.buyer.username }}
+                                            {% else %}
+                                                {{ room.seller.username }}
+                                            {% endif %}
+
+                                        </strong>
+
+                                        <span class="pm-conversation-role">
+
+                                            {% if request.user == room.seller %}
+                                                구매자
+                                            {% else %}
+                                                판매자
+                                            {% endif %}
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <!-- 최근 메시지 시간 -->
+                                    <time class="pm-conversation-time">
+
+                                        {% if last_message %}
+
+                                            {{ last_message.created_at|date:"m.d H:i" }}
+
+                                        {% else %}
+
+                                            {{ room.created_at|date:"m.d H:i" }}
+
+                                        {% endif %}
+
+                                    </time>
+
+                                </div>
+
+
+                                <!-- 상품명 -->
+                                <h3 class="pm-conversation-product-title">
+                                    {{ room.product.title }}
+                                </h3>
+
+
+                                <!-- 상품 가격 -->
+                                <p class="pm-conversation-price">
+                                    {{ room.product.price|intcomma }}원
+                                </p>
+
+
+                                <!-- 마지막 메시지 -->
+                                <p class="pm-conversation-last-message">
+
+                                    {% if last_message %}
+
+                                        {% if last_message.sender_id == request.user.id %}
+                                            <span>나:</span>
+                                        {% endif %}
+
+                                        {{ last_message.content|truncatechars:55 }}
+
+                                    {% else %}
+
+                                        아직 대화가 없습니다.
+                                        첫 메시지를 보내보세요!
+
+                                    {% endif %}
+
+                                </p>
+
+                            </div>
+
+
+                            <!-- 화살표 -->
+                            <div class="pm-conversation-arrow">
+                                ›
+                            </div>
+
+                        </a>
+
+                        {% endwith %}
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- 검색 결과 없음 -->
+                <div
+                    class="pm-inbox-no-results"
+                    id="chat-search-empty"
+                    hidden
+                >
+                    <span>🔍</span>
+                    <h3>검색 결과가 없습니다.</h3>
+                    <p>다른 상품명이나 사용자 이름을 입력해 보세요.</p>
+                </div>
+
+
+            {% else %}
+
+                <!-- 채팅방이 없을 때 -->
+                <div class="pm-inbox-empty">
+
+                    <div class="pm-inbox-empty-icon">
+                        💬
+                    </div>
+
+                    <h2>아직 진행 중인 채팅이 없어요.</h2>
+
+                    <p>
+                        마음에 드는 상품을 발견했다면<br>
+                        판매자와 대화를 시작해 보세요.
+                    </p>
+
+                    <a
+                        href="{% url 'product_list' %}"
+                        class="btn btn-primary"
+                    >
+                        중고상품 둘러보기
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- 하단 안내 -->
+        <div class="pm-inbox-guide">
+
+            <div class="pm-inbox-guide-icon">
+                🛡️
+            </div>
+
+            <div>
+
+                <strong>
+                    안전한 거래를 위한 안내
+                </strong>
+
+                <p>
+                    거래 전 상품 상태와 가격을 충분히 확인하고,
+                    비밀번호나 인증번호 등 민감한 정보는
+                    채팅으로 전달하지 마세요.
+                </p>
+
+            </div>
+
+        </div>
 
     </div>
 
-    <hr>
+</section>
 
-{% empty %}
 
-    <p>
-        아직 채팅방이 없습니다.
-    </p>
+<!-- 채팅방 검색 기능 -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
 
-{% endfor %}
+    const searchInput =
+        document.getElementById("chat-list-search");
 
-</body>
+    const chatItems =
+        document.querySelectorAll(".pm-conversation-item");
 
-</html>
+    const emptyResult =
+        document.getElementById("chat-search-empty");
+
+    if (!searchInput) {
+        return;
+    }
+
+    searchInput.addEventListener("input", function () {
+
+        const keyword =
+            searchInput.value.trim().toLowerCase();
+
+        let visibleCount = 0;
+
+        chatItems.forEach(function (item) {
+
+            const searchText =
+                (item.dataset.search || "").toLowerCase();
+
+            const matched =
+                searchText.includes(keyword);
+
+            item.hidden = !matched;
+
+            if (matched) {
+                visibleCount++;
+            }
+
+        });
+
+        if (emptyResult) {
+            emptyResult.hidden = visibleCount !== 0;
+        }
+
+    });
+
+});
+</script>
+
+{% endblock %}

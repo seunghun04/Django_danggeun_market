@@ -1,184 +1,491 @@
 
-<!DOCTYPE html>
-<html lang="ko">
+{% extends "market/base.html" %}
+{% load humanize %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>채팅</title>
-</head>
+{% block title %}채팅방 | Poly Market{% endblock %}
 
-<body>
+{% block content %}
 
-<h1>
-    {{ room.product.title }}
-</h1>
+<section class="pm-chat-page">
 
-<p>
-    판매자:
-    {{ room.seller.username }}
-</p>
+    <div class="container">
 
-<p>
-    구매자:
-    {{ room.buyer.username }}
-</p>
+        <!-- 상단 페이지 제목 -->
+        <div class="pm-chat-page-heading">
 
-<a href="{% url 'chat_list' %}">
-    채팅 목록
-</a>
+            <div>
+                <span class="pm-page-label">
+                    REALTIME CHAT
+                </span>
 
-<hr>
+                <h1>거래 채팅</h1>
 
-<div
-    id="chat-log"
-    style="
-        border: 1px solid black;
-        width: 600px;
-        height: 400px;
-        overflow-y: auto;
-        padding: 10px;
-    "
->
+                <p>
+                    판매자와 실시간으로 이야기를 나눠보세요.
+                </p>
+            </div>
 
-    {% for message in chat_messages %}
-
-        <div>
-
-            <strong>
-                {{ message.sender.username }}
-            </strong>
-
-            :
-
-            {{ message.content }}
-
-            <small>
-                {{ message.created_at|date:"H:i" }}
-            </small>
+            <a href="{% url 'chat_list' %}"
+               class="pm-chat-back">
+                ← 채팅 목록
+            </a>
 
         </div>
 
-    {% endfor %}
 
-</div>
+        <div class="pm-chat-layout">
 
-<br>
+            <!-- 왼쪽: 거래 상품 정보 -->
+            <aside class="pm-chat-sidebar">
 
-<input
-    id="chat-message-input"
-    type="text"
-    placeholder="메시지를 입력하세요."
-    style="width: 500px;"
->
+                <div class="pm-chat-product-card">
 
-<button id="chat-message-submit">
-    전송
-</button>
+                    <span class="pm-chat-side-label">
+                        거래 중인 상품
+                    </span>
+
+                    <!-- 사진! Supabase 상품 이미지 -->
+                    <a href="{% url 'product_detail' room.product.id %}"
+                       class="pm-chat-product-image">
+
+                        {% if room.product.image_url %}
+
+                            <img
+                                src="{{ room.product.image_url }}"
+                                alt="{{ room.product.title }}"
+                            >
+
+                        {% else %}
+
+                            <div class="pm-chat-no-image">
+                                📦
+                            </div>
+
+                        {% endif %}
+
+                    </a>
+
+                    <h3>{{ room.product.title }}</h3>
+
+                    <strong class="pm-chat-product-price">
+                        {{ room.product.price|intcomma }}원
+                    </strong>
+
+                    <p class="pm-chat-product-region">
+                        📍 {{ room.product.region }}
+                    </p>
+
+                    <a href="{% url 'product_detail' room.product.id %}"
+                       class="pm-chat-product-link">
+                        상품 상세보기 →
+                    </a>
+
+                </div>
+
+                <div class="pm-chat-guide">
+
+                    <h3>💬 거래 안내</h3>
+
+                    <p>
+                        상품의 상태, 가격, 거래 장소 등을
+                        충분히 확인하고 거래해 주세요.
+                    </p>
+
+                    <p>
+                        개인정보나 금융정보를 무리하게
+                        요구하는 거래는 주의해 주세요.
+                    </p>
+
+                </div>
+
+            </aside>
+
+
+            <!-- 오른쪽: 실제 채팅방 -->
+            <div class="pm-chat-panel">
+
+                <!-- 채팅 헤더 -->
+                <div class="pm-chat-header">
+
+                    <div class="pm-chat-header-user">
+
+                        <div class="pm-chat-avatar">
+
+                            {% if request.user == room.seller %}
+                                {{ room.buyer.username|first|upper }}
+                            {% else %}
+                                {{ room.seller.username|first|upper }}
+                            {% endif %}
+
+                        </div>
+
+                        <div class="pm-chat-header-info">
+
+                            <h2>
+                                {% if request.user == room.seller %}
+                                    {{ room.buyer.username }}
+                                {% else %}
+                                    {{ room.seller.username }}
+                                {% endif %}
+                            </h2>
+
+                            <span>
+                                실시간 거래 채팅방
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="pm-chat-status" id="chat-status">
+                        <span class="pm-chat-status-dot"></span>
+                        <span id="chat-status-text">연결 중</span>
+                    </div>
+
+                </div>
+
+
+                <!-- 메시지 출력 영역 -->
+                <div class="pm-chat-messages" id="chat-log">
+
+                    <div class="pm-chat-date-divider">
+                        <span>대화 내용</span>
+                    </div>
+
+                    <!-- 기존 저장 메시지 -->
+                    {% with history=chat_messages|default:messages %}
+
+                        {% for msg in history %}
+
+                            <div class="pm-chat-row
+                                {% if msg.sender_id == request.user.id %}
+                                    mine
+                                {% else %}
+                                    theirs
+                                {% endif %}">
+
+                                {% if msg.sender_id != request.user.id %}
+
+                                    <div class="pm-chat-message-avatar">
+                                        {{ msg.sender.username|first|upper }}
+                                    </div>
+
+                                {% endif %}
+
+                                <div class="pm-chat-message-body">
+
+                                    {% if msg.sender_id != request.user.id %}
+
+                                        <span class="pm-chat-sender">
+                                            {{ msg.sender.username }}
+                                        </span>
+
+                                    {% endif %}
+
+                                    <div class="pm-chat-bubble-wrap">
+
+                                        <div class="pm-chat-bubble">
+                                            {{ msg.content }}
+                                        </div>
+
+                                        <span class="pm-chat-time">
+                                            {{ msg.created_at|date:"H:i" }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {% empty %}
+
+                            <div class="pm-chat-empty" id="chat-empty">
+                                <span>💬</span>
+                                <h3>아직 메시지가 없습니다.</h3>
+                                <p>첫 번째 메시지를 보내보세요!</p>
+                            </div>
+
+                        {% endfor %}
+
+                    {% endwith %}
+
+                </div>
+
+
+                <!-- 메시지 전송 영역 -->
+                <div class="pm-chat-compose">
+
+                    <div class="pm-chat-compose-inner">
+
+                        <textarea
+                            id="chat-message-input"
+                            placeholder="메시지를 입력하세요..."
+                            rows="1"
+                            maxlength="2000"
+                            aria-label="채팅 메시지 입력"
+                        ></textarea>
+
+                        <button
+                            type="button"
+                            id="chat-message-submit"
+                            class="pm-chat-send-button"
+                            aria-label="메시지 보내기"
+                            disabled
+                        >
+                            전송
+                        </button>
+
+                    </div>
+
+                    <p class="pm-chat-compose-tip">
+                        Enter 전송 · Shift + Enter 줄바꿈
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 
 
 <script>
+document.addEventListener("DOMContentLoaded", function () {
 
-const roomId = "{{ room.id }}";
+    const roomId = "{{ room.id|escapejs }}";
+    const currentUsername = "{{ request.user.username|escapejs }}";
+    const currentUserId = "{{ request.user.id|escapejs }}";
 
-const protocol =
-    window.location.protocol === "https:"
-        ? "wss"
-        : "ws";
+    const chatLog =
+        document.getElementById("chat-log");
 
-const chatSocket = new WebSocket(
-    `${protocol}://${window.location.host}/ws/chat/${roomId}/`
-);
+    const messageInput =
+        document.getElementById("chat-message-input");
 
-const chatLog =
-    document.getElementById("chat-log");
+    const sendButton =
+        document.getElementById("chat-message-submit");
 
-const messageInput =
-    document.getElementById(
-        "chat-message-input"
+    const statusBox =
+        document.getElementById("chat-status");
+
+    const statusText =
+        document.getElementById("chat-status-text");
+
+    const protocol =
+        window.location.protocol === "https:" ? "wss" : "ws";
+
+    const socket = new WebSocket(
+        protocol + "://" +
+        window.location.host +
+        "/ws/chat/" + roomId + "/"
     );
 
-const sendButton =
-    document.getElementById(
-        "chat-message-submit"
-    );
-
-
-chatSocket.onmessage = function(event) {
-
-    const data =
-        JSON.parse(event.data);
-
-    const line =
-        document.createElement("div");
-
-    const name =
-        document.createElement("strong");
-
-    name.textContent =
-        data.username;
-
-    const text =
-        document.createTextNode(
-            " : "
-            + data.message
-            + " "
-        );
-
-    const time =
-        document.createElement("small");
-
-    time.textContent =
-        data.created_at;
-
-    line.appendChild(name);
-    line.appendChild(text);
-    line.appendChild(time);
-
-    chatLog.appendChild(line);
-
-    chatLog.scrollTop =
-        chatLog.scrollHeight;
-};
-
-
-function sendMessage() {
-
-    const message =
-        messageInput.value.trim();
-
-    if (!message) {
-        return;
+    // 채팅 영역을 맨 아래로 이동
+    function scrollToBottom() {
+        chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    chatSocket.send(
-        JSON.stringify({
-            "message": message
-        })
-    );
+    // 연결 상태 변경
+    function setConnectionState(connected, text) {
 
-    messageInput.value = "";
-}
+        statusBox.classList.toggle(
+            "connected",
+            connected
+        );
 
+        statusText.textContent = text;
+        sendButton.disabled = !connected;
 
-sendButton.addEventListener(
-    "click",
-    sendMessage
-);
+    }
 
+    // 메시지 한 개를 화면에 추가
+    function appendMessage(sender, content, time, isMine) {
 
-messageInput.addEventListener(
-    "keydown",
-    function(event) {
+        const emptyBox =
+            document.getElementById("chat-empty");
 
-        if (event.key === "Enter") {
+        if (emptyBox) {
+            emptyBox.remove();
+        }
+
+        const row = document.createElement("div");
+
+        row.className =
+            "pm-chat-row " +
+            (isMine ? "mine" : "theirs");
+
+        if (!isMine) {
+
+            const avatar =
+                document.createElement("div");
+
+            avatar.className = "pm-chat-message-avatar";
+
+            avatar.textContent =
+                (String(sender || "?").charAt(0)).toUpperCase();
+
+            row.appendChild(avatar);
+        }
+
+        const body = document.createElement("div");
+        body.className = "pm-chat-message-body";
+
+        if (!isMine) {
+
+            const senderName =
+                document.createElement("span");
+
+            senderName.className = "pm-chat-sender";
+
+            senderName.textContent = sender || "상대방";
+
+            body.appendChild(senderName);
+        }
+
+        const bubbleWrap =
+            document.createElement("div");
+
+        bubbleWrap.className = "pm-chat-bubble-wrap";
+
+        const bubble =
+            document.createElement("div");
+
+        bubble.className = "pm-chat-bubble";
+
+        // HTML로 넣지 않고 텍스트로 처리
+        bubble.textContent = content;
+
+        const timeElement =
+            document.createElement("span");
+
+        timeElement.className = "pm-chat-time";
+        timeElement.textContent = time || "";
+
+        bubbleWrap.appendChild(bubble);
+        bubbleWrap.appendChild(timeElement);
+
+        body.appendChild(bubbleWrap);
+        row.appendChild(body);
+
+        chatLog.appendChild(row);
+        scrollToBottom();
+    }
+
+    // WebSocket 연결 성공
+    socket.onopen = function () {
+        setConnectionState(true, "연결됨");
+        messageInput.focus();
+    };
+
+    // WebSocket으로 새 메시지가 도착했을 때
+    socket.onmessage = function (event) {
+
+        let data;
+
+        try {
+            data = JSON.parse(event.data);
+        } catch (error) {
+            return;
+        }
+
+        const content =
+            data.message ?? data.content ?? data.text;
+
+        if (typeof content !== "string" || !content.trim()) {
+            return;
+        }
+
+        const sender =
+            data.sender ??
+            data.username ??
+            data.sender_username ??
+            "상대방";
+
+        const senderId =
+            data.sender_id ?? data.user_id;
+
+        const isMine =
+            data.is_mine === true ||
+            String(sender) === currentUsername ||
+            (
+                senderId !== undefined &&
+                String(senderId) === currentUserId
+            );
+
+        let time =
+            data.time ?? data.created_at ?? "";
+
+        if (typeof time === "string" && time.includes("T")) {
+
+            const parsed = new Date(time);
+
+            if (!Number.isNaN(parsed.getTime())) {
+                time = parsed.toLocaleTimeString("ko-KR", {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+            }
+        }
+
+        appendMessage(
+            sender,
+            content,
+            time,
+            isMine
+        );
+    };
+
+    // 연결 해제
+    socket.onclose = function () {
+        setConnectionState(
+            false,
+            "연결 끊김 · 새로고침 필요"
+        );
+    };
+
+    // 메시지 전송
+    function sendMessage() {
+
+        const message = messageInput.value.trim();
+
+        if (!message) {
+            return;
+        }
+
+        if (socket.readyState !== WebSocket.OPEN) {
+            setConnectionState(false, "연결되지 않음");
+            return;
+        }
+
+        socket.send(JSON.stringify({
+            message: message,
+            content: message
+        }));
+
+        // 서버에서 브로드캐스트한 메시지를
+        // 받으면 화면에 표시하므로 여기선 추가하지 않음
+        messageInput.value = "";
+        messageInput.focus();
+    }
+
+    sendButton.addEventListener("click", sendMessage);
+
+    messageInput.addEventListener("keydown", function (event) {
+
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
             sendMessage();
         }
 
-    }
-);
+    });
 
+    scrollToBottom();
+
+});
 </script>
 
-</body>
-
-</html>
+{% endblock %}

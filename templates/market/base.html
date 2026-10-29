@@ -1,0 +1,93 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}Poly Market{% endblock %}
+    </title>
+
+    <link rel="stylesheet"
+          href="{% static 'market/css/style.css' %}">
+</head>
+
+<body>
+
+    <!-- 공통 상단 내비게이션 -->
+    <header class="site-header">
+        <div class="container navbar">
+
+            <!-- 로고 -->
+            <a href="{% url 'main' %}" class="brand">
+                <span class="brand-icon">P</span>
+                <span>Poly<span class="brand-accent">Market</span></span>
+            </a>
+
+            <!-- 메뉴 -->
+            <nav class="nav-links">
+                <a href="{% url 'main' %}">홈</a>
+                <a href="{% url 'product_list' %}">중고거래</a>
+                <a href="{% url 'product_create' %}">판매하기</a>
+                <a href="{% url 'chat_list' %}">내 채팅</a>
+            </nav>
+
+            <!-- 사용자 메뉴 -->
+            <div class="nav-user">
+
+                {% if user.is_authenticated %}
+
+                    <span class="user-name">
+                        {{ user.username }}님
+                    </span>
+
+                    <form method="post"
+                          action="{% url 'logout' %}">
+                        {% csrf_token %}
+
+                        <button type="submit"
+                                class="btn btn-outline">
+                            로그아웃
+                        </button>
+                    </form>
+
+                {% else %}
+
+                    <a href="{% url 'login' %}"
+                       class="btn btn-outline">
+                        로그인
+                    </a>
+
+                    <a href="{% url 'signup' %}"
+                       class="btn btn-primary">
+                        회원가입
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+    </header>
+
+    <!-- 각 페이지의 내용 -->
+    <main class="site-main">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- 공통 푸터 -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <span>© 2026 Poly Market</span>
+            <span>우리 동네에서 시작하는 중고거래</span>
+        </div>
+    </footer>
+
+</body>
+
+</html>

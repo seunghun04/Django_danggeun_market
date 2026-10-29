@@ -1,36 +1,62 @@
-<!DOCTYPE html>
-<html lang="ko">
+{% extends "market/base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>{{ page_title }}</title>
-</head>
+{% block title %}{{ page_title }} | Poly Market{% endblock %}
 
-<body>
+{% block content %}
 
-<h1>
-    {{ page_title }}
-</h1>
+<div class="pm-page">
 
-<form
-    method="post"
-    enctype="multipart/form-data"
->
+    <div class="container">
 
-    {% csrf_token %}
+        <div class="pm-form-container">
 
-    {{ form.as_p }}
+            <div class="pm-form-heading">
 
-    <button type="submit">
-        저장
-    </button>
+                <span class="pm-page-label">
+                    SELL YOUR ITEM
+                </span>
 
-</form>
+                <h1>{{ page_title }}</h1>
 
-<a href="{% url 'product_list' %}">
-    목록으로
-</a>
+                <p>
+                    상품 정보를 입력하고
+                    이웃들과 거래를 시작해 보세요.
+                </p>
 
-</body>
+            </div>
 
-</html>
+            <div class="pm-form-card">
+
+                <form method="post"
+                      enctype="multipart/form-data"
+                      class="pm-product-form">
+
+                    {% csrf_token %}
+
+                    {{ form.as_p }}
+
+                    <div class="pm-form-actions">
+
+                        <a href="{% url 'product_list' %}"
+                           class="btn btn-outline">
+                            취소
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+                            저장하기
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

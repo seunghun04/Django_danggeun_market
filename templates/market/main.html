@@ -1,62 +1,410 @@
-<!DOCTYPE html>
-<html lang="ko">
+{% extends "market/base.html" %}
 
-<head>
-    <meta charset="UTF-8">
+{% load humanize %}
 
-    <title>
-        Danggeun Market
-    </title>
-</head>
+{% block title %}
+Poly Market | 우리 동네 중고거래
+{% endblock %}
 
-<body>
+{% block content %}
 
-<h1>
-    Poly Market
-</h1>
+<div class="pm-home">
 
-<p>
-    Django로 만드는 중고거래 플랫폼입니다.
-</p>
+    <!-- 1. 서비스 소개 히어로 영역 -->
+    <section class="pm-hero">
 
-<hr>
+        <div class="container pm-hero-inner">
 
-{% if user.is_authenticated %}
+            <div class="pm-hero-content">
 
-    <p>
-        {{ user.first_name }}님 환영합니다.
-    </p>
+                <span class="pm-eyebrow">
+                    OUR NEIGHBORHOOD MARKET
+                </span>
 
-    <p>
-        아이디:
-        {{ user.username }}
-    </p>
+                <h1>
+                    우리 동네의 좋은 물건,<br>
+                    <span>새로운 주인을 만나다.</span>
+                </h1>
 
-    <form
-        method="post"
-        action="{% url 'logout' %}"
-    >
+                <p class="pm-hero-description">
+                    사용하지 않는 물건을 필요한 이웃에게.<br>
+                    Poly Market에서 쉽고 편리하게 거래하고<br>
+                    실시간 채팅으로 이야기를 나눠보세요.
+                </p>
 
-        {% csrf_token %}
+                <div class="pm-hero-actions">
 
-        <button type="submit">
-            로그아웃
-        </button>
+                    <a href="#products"
+                       class="btn btn-primary">
+                        상품 둘러보기
+                    </a>
 
-    </form>
+                    <a href="{% url 'product_create' %}"
+                       class="btn btn-outline">
+                        내 물건 판매하기
+                    </a>
 
-{% else %}
+                </div>
 
-    <a href="{% url 'login' %}">
-        로그인
-    </a>
+                <div class="pm-hero-caption">
+                    📦 간편한 등록
+                    &nbsp; · &nbsp;
+                    ❤️ 관심상품
+                    &nbsp; · &nbsp;
+                    💬 실시간 채팅
+                </div>
 
-    <a href="{% url 'signup' %}">
-        회원가입
-    </a>
+            </div>
 
-{% endif %}
 
-</body>
+            <!-- 2. 메인 대표 상품 이미지 -->
+            <div class="pm-hero-visual">
 
-</html>
+                <div class="pm-visual-circle"></div>
+
+                <div class="pm-showcase">
+
+                    <div class="pm-showcase-top">
+                        <span class="pm-live-dot"></span>
+                        NEW ARRIVAL
+                    </div>
+
+                    {% if featured_product %}
+
+                        <!-- 사진! DB의 최신 상품 이미지 -->
+
+                        <div class="pm-showcase-image">
+
+                            {% if featured_product.image_url %}
+
+                                <img
+                                    src="{{ featured_product.image_url }}"
+                                    alt="{{ featured_product.title }}"
+                                >
+
+                            {% else %}
+
+                                <span>📦</span>
+
+                            {% endif %}
+
+                        </div>
+
+                        <div class="pm-showcase-info">
+
+                            <span class="pm-showcase-subtitle">
+                                새로 올라온 상품
+                            </span>
+
+                            <h3>
+                                {{ featured_product.title|truncatechars:26 }}
+                            </h3>
+
+                            <strong>
+                                {{ featured_product.price|intcomma }}원
+                            </strong>
+
+                            <a href="{% url 'product_detail' featured_product.id %}">
+                                상품 자세히 보기
+                            </a>
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="pm-showcase-placeholder">
+                            🛍️
+                        </div>
+
+                        <div class="pm-showcase-info">
+
+                            <h3>좋은 거래의 시작</h3>
+
+                            <p>
+                                첫 번째 상품을 등록해 보세요.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+                <div class="pm-floating-label">
+                    ✨ 새로운 발견
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 3. 서비스 특징 -->
+    <section class="pm-benefits">
+
+        <div class="container pm-benefit-grid">
+
+            <div class="pm-benefit-item">
+                <span>📦</span>
+                <div>
+                    <strong>간편한 판매</strong>
+                    <p>사진과 가격만으로 상품 등록</p>
+                </div>
+            </div>
+
+            <div class="pm-benefit-item">
+                <span>❤️</span>
+                <div>
+                    <strong>관심상품 찜하기</strong>
+                    <p>마음에 드는 상품 저장</p>
+                </div>
+            </div>
+
+            <div class="pm-benefit-item">
+                <span>💬</span>
+                <div>
+                    <strong>실시간 채팅</strong>
+                    <p>판매자와 빠르게 대화</p>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 4. 실제 중고상품 목록 -->
+    <section class="pm-products-section" id="products">
+
+        <div class="container">
+
+            <div class="pm-section-heading">
+
+                <span class="pm-eyebrow">
+                    EXPLORE PRODUCTS
+                </span>
+
+                <h2>지금 올라온 중고상품</h2>
+
+                <p>
+                    우리 동네에서 판매 중인 다양한 상품을 만나보세요.
+                </p>
+
+            </div>
+
+
+            <!-- 5. 상품 검색창 -->
+            <form
+                method="get"
+                action="{% url 'main' %}#products"
+                class="pm-search-form"
+            >
+
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ q }}"
+                    placeholder="상품명, 지역을 검색해 보세요."
+                    aria-label="상품 검색"
+                >
+
+                <button type="submit">
+                    🔍 검색
+                </button>
+
+            </form>
+
+
+            <!-- 6. 추천 검색어 -->
+            <div class="pm-keywords">
+
+                <span>추천 검색어</span>
+
+                <a href="{% url 'main' %}?q=아이폰#products">
+                    아이폰
+                </a>
+
+                <a href="{% url 'main' %}?q=노트북#products">
+                    노트북
+                </a>
+
+                <a href="{% url 'main' %}?q=기타#products">
+                    기타
+                </a>
+
+                <a href="{% url 'main' %}?q=자전거#products">
+                    자전거
+                </a>
+
+                <a href="{% url 'main' %}?q=카메라#products">
+                    카메라
+                </a>
+
+            </div>
+
+
+            <!-- 7. 상품 목록 헤더 -->
+            <div class="pm-products-heading">
+
+                <div>
+
+                    <h3>
+                        {% if q %}
+                            "{{ q }}" 검색 결과
+                        {% else %}
+                            전체 상품
+                        {% endif %}
+                    </h3>
+
+                    <p>
+                        총 {{ product_count }}개의 상품
+                    </p>
+
+                </div>
+
+                <div class="pm-product-sort">
+
+                    <a
+                        href="?q={{ q|urlencode }}&sort=latest#products"
+                        class="{% if sort == 'latest' %}active{% endif %}"
+                    >
+                        최신순
+                    </a>
+
+                    <a
+                        href="?q={{ q|urlencode }}&sort=popular#products"
+                        class="{% if sort == 'popular' %}active{% endif %}"
+                    >
+                        조회수순
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- 8. DB 상품 카드 -->
+            <div class="pm-product-grid">
+
+                {% for product in products %}
+
+                    <a
+                        href="{% url 'product_detail' product.id %}"
+                        class="pm-product-card"
+                    >
+
+                        <!-- 사진! Supabase Storage 상품 이미지 -->
+                        <div class="pm-product-image">
+
+                            {% if product.image_url %}
+
+                                <img
+                                    src="{{ product.image_url }}"
+                                    alt="{{ product.title }}"
+                                    loading="lazy"
+                                >
+
+                            {% else %}
+
+                                <div class="pm-no-image">
+                                    📦
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="pm-product-info">
+
+                            <h3>
+                                {{ product.title }}
+                            </h3>
+
+                            <p class="pm-product-region">
+                                {{ product.region }}
+                            </p>
+
+                            <strong class="pm-product-price">
+                                {{ product.price|intcomma }}원
+                            </strong>
+
+                            <div class="pm-product-meta">
+
+                                <span>
+                                    {{ product.created_at|timesince }} 전
+                                </span>
+
+                                <span>
+                                    조회 {{ product.view_count }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                {% empty %}
+
+                    <div class="pm-empty">
+
+                        <div>📦</div>
+
+                        <h3>등록된 상품이 없습니다.</h3>
+
+                        <p>
+                            다른 검색어를 입력하거나
+                            새로운 상품을 등록해 보세요.
+                        </p>
+
+                        <a href="{% url 'product_create' %}"
+                           class="btn btn-primary">
+                            상품 등록하기
+                        </a>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 9. 푸터와 구분되는 주황색 CTA -->
+    <section class="pm-cta">
+
+        <div class="container pm-cta-inner">
+
+            <div>
+
+                <span>START TRADING TODAY</span>
+
+                <h2>
+                    사용하지 않는 물건이 있나요?
+                </h2>
+
+                <p>
+                    지금 바로 판매글을 등록하고
+                    새로운 주인을 찾아보세요.
+                </p>
+
+            </div>
+
+            <a href="{% url 'product_create' %}"
+               class="pm-cta-button">
+                내 물건 판매하기
+            </a>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}
