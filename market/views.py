@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db.models import F, Q
 from django.core.exceptions import PermissionDenied
-
+from django.http import HttpResponse
 from .models import Product, Wishlist, ChatRoom
 from .forms import SignUpForm, ProductForm
 from .storage import upload_product_image
@@ -21,6 +21,8 @@ from django.contrib import messages
 
 from .forms import SignUpForm
 
+def state(requset):
+    return HttpResponse("server OK", content_type = "text/plain")
 
 def main(request):
 

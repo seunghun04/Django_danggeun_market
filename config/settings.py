@@ -25,7 +25,7 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4^8se14hd2i=o#q^)fd3qhed)ew8@^$&l+f=p0$0$)xg9w@&y)'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -139,6 +139,14 @@ ALLOWED_HOSTS = [
     'localhost',
     '192.168.5.162'
 ]
+
+render_host = os.getenv(
+    "RENDER_EXTERNAL_HOSTNAME"
+)
+
+if render_host:
+    ALLOWED_HOSTS.append(render_host)
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 

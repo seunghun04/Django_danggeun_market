@@ -9,8 +9,14 @@ urlpatterns = [
         "",
         views.main,
         name="main"
-    ),
+    ), 
 
+    path(
+        "state/",
+        views.state,
+        name="state"
+
+    ),
     # 기존 회원가입 / 로그인 / 로그아웃
     path(
         "signup/",
