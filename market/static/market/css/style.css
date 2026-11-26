@@ -3866,3 +3866,325 @@ button {
     }
 
 }
+
+
+/* =========================================
+   POLY MARKET - 메인 히어로 애니메이션
+   ※ 기존 히어로 스타일은 그대로 두고 움직임만 추가
+========================================= */
+
+.pm-hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.pm-hero-inner {
+    position: relative;
+    z-index: 1;
+}
+
+/* 배경에서 천천히 움직이는 빛 덩어리 */
+
+.pm-hero-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.pm-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.55;
+}
+
+.pm-blob-1 {
+    width: 380px;
+    height: 380px;
+    background: #ffd2b8;
+    top: -120px;
+    left: -80px;
+    animation: pm-blob-move-1 16s ease-in-out infinite alternate;
+}
+
+.pm-blob-2 {
+    width: 300px;
+    height: 300px;
+    background: #ffe6d6;
+    bottom: -120px;
+    left: 38%;
+    animation: pm-blob-move-2 19s ease-in-out infinite alternate;
+}
+
+.pm-blob-3 {
+    width: 260px;
+    height: 260px;
+    background: #ffc3a0;
+    top: 20%;
+    right: -60px;
+    opacity: 0.35;
+    animation: pm-blob-move-1 22s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes pm-blob-move-1 {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(80px, 40px) scale(1.12); }
+    100% { transform: translate(30px, 90px) scale(0.95); }
+}
+
+@keyframes pm-blob-move-2 {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(-90px, -30px) scale(1.1); }
+    100% { transform: translate(60px, -60px) scale(1); }
+}
+
+/* 왼쪽 글자: 차례대로 올라오며 등장 */
+
+.pm-hero-content > * {
+    opacity: 0;
+    animation: pm-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.pm-hero-content > :nth-child(1) { animation-delay: 0.05s; }
+.pm-hero-content > :nth-child(2) { animation-delay: 0.18s; }
+.pm-hero-content > :nth-child(3) { animation-delay: 0.32s; }
+.pm-hero-content > :nth-child(4) { animation-delay: 0.46s; }
+.pm-hero-content > :nth-child(5) { animation-delay: 0.6s; }
+
+@keyframes pm-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(26px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* "새로운 주인을 만나다." 밑줄이 그려지는 효과 */
+
+.pm-hero h1 span {
+    position: relative;
+    display: inline-block;
+}
+
+.pm-hero h1 span::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 4px;
+    width: 100%;
+    height: 12px;
+    border-radius: 6px;
+    background: rgba(243, 107, 54, 0.18);
+    transform: scaleX(0);
+    transform-origin: left;
+    z-index: -1;
+    animation: pm-underline 0.9s 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes pm-underline {
+    to { transform: scaleX(1); }
+}
+
+/* 버튼: 마우스를 올리면 살짝 떠오름 */
+
+.pm-hero-actions .btn {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.pm-hero-actions .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px rgba(243, 107, 54, 0.22);
+}
+
+/* 오른쪽 카드 영역 */
+
+.pm-hero-visual {
+    opacity: 0;
+    animation: pm-visual-in 1s 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes pm-visual-in {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* 상품 카드가 둥둥 떠 있는 효과 */
+
+.pm-showcase {
+    animation: pm-float 6s ease-in-out 1.2s infinite;
+    transition: box-shadow 0.3s ease;
+}
+
+.pm-showcase:hover {
+    box-shadow: 0 30px 70px rgba(124, 63, 29, 0.24);
+}
+
+.pm-showcase-image img {
+    transition: transform 0.6s ease;
+}
+
+.pm-showcase:hover .pm-showcase-image img {
+    transform: scale(1.05);
+}
+
+@keyframes pm-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+}
+
+/* "새로운 발견" 라벨: 카드와 엇갈리게 움직임 */
+
+.pm-floating-label {
+    animation: pm-float-small 4.5s ease-in-out 0.8s infinite;
+}
+
+@keyframes pm-float-small {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-8px) rotate(-2deg); }
+}
+
+/* 오른쪽 위 흰 원: 천천히 숨쉬기 */
+
+.pm-visual-circle {
+    animation: pm-breathe 8s ease-in-out infinite;
+}
+
+@keyframes pm-breathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.12); }
+}
+
+/* NEW ARRIVAL 초록 점: 깜빡이는 효과 */
+
+.pm-live-dot {
+    position: relative;
+}
+
+.pm-live-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #43b783;
+    animation: pm-ping 1.8s ease-out infinite;
+}
+
+@keyframes pm-ping {
+    0%   { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(2.8); opacity: 0; }
+}
+
+/* 카드 주변을 떠다니는 아이콘 */
+
+.pm-float-icon {
+    position: absolute;
+    z-index: 1;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(124, 63, 29, 0.12);
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.pm-float-1 {
+    top: 14%;
+    left: 7%;
+    animation: pm-drift-1 7s ease-in-out infinite;
+}
+
+.pm-float-2 {
+    top: 58%;
+    left: 5%;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+    animation: pm-drift-2 6s ease-in-out 0.6s infinite;
+}
+
+.pm-float-3 {
+    top: 10%;
+    right: 7%;
+    width: 46px;
+    height: 46px;
+    font-size: 21px;
+    animation: pm-drift-2 8s ease-in-out 0.3s infinite;
+}
+
+.pm-float-4 {
+    top: 48%;
+    right: 5%;
+    width: 42px;
+    height: 42px;
+    font-size: 19px;
+    animation: pm-drift-1 6.5s ease-in-out 1s infinite;
+}
+
+@keyframes pm-drift-1 {
+    0%, 100% { transform: translate(0, 0) rotate(-6deg); }
+    50%      { transform: translate(6px, -16px) rotate(6deg); }
+}
+
+@keyframes pm-drift-2 {
+    0%, 100% { transform: translate(0, 0) rotate(5deg); }
+    50%      { transform: translate(-6px, 14px) rotate(-5deg); }
+}
+
+/* 작은 화면에서는 아이콘을 줄여서 카드를 가리지 않도록 */
+
+@media (max-width: 520px) {
+
+    .pm-float-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 17px;
+        border-radius: 12px;
+    }
+
+    .pm-float-2,
+    .pm-float-4 {
+        display: none;
+    }
+
+    .pm-blob {
+        filter: blur(45px);
+    }
+
+}
+
+/* 움직임 줄이기 설정을 켠 사용자(접근성)는 애니메이션 끄기 */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .pm-hero *,
+    .pm-hero *::before,
+    .pm-hero *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .pm-hero-content > *,
+    .pm-hero-visual {
+        opacity: 1;
+    }
+
+    .pm-hero h1 span::after {
+        transform: scaleX(1);
+    }
+
+}
