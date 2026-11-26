@@ -77,6 +77,96 @@
             </div>
 
         </div>
+
+        <!-- 카테고리 바 (번개장터 형식) -->
+        <div class="pm-catbar">
+            <div class="container pm-catbar-inner">
+
+                <div class="pm-cat-menu" id="pm-cat-menu">
+
+                    <button type="button"
+                            class="pm-cat-trigger"
+                            id="pm-cat-trigger"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="pm-cat-burger" aria-hidden="true">
+                            <span></span><span></span><span></span>
+                        </span>
+                        카테고리
+                    </button>
+
+                    <!-- 마우스를 올리면 펼쳐지는 메뉴 -->
+                    <div class="pm-cat-dropdown" role="menu">
+
+                        <div class="pm-cat-panel">
+
+                            <ul class="pm-cat-main">
+
+                                {% for name, subs in category_tree %}
+
+                                    <li class="pm-cat-item">
+
+                                        <a href="{% url 'product_list' %}?category={{ name|urlencode:'' }}"
+                                           class="pm-cat-link">
+                                            {{ name }}
+                                            <span class="pm-cat-arrow" aria-hidden="true">›</span>
+                                        </a>
+
+                                        <!-- 오른쪽에 펼쳐지는 소분류 -->
+                                        <ul class="pm-cat-sub">
+
+                                            <li class="pm-cat-sub-title">
+                                                {{ name }}
+                                            </li>
+
+                                            <li>
+                                                <a href="{% url 'product_list' %}?category={{ name|urlencode:'' }}"
+                                                   class="pm-cat-all">
+                                                    전체보기 →
+                                                </a>
+                                            </li>
+
+                                            {% for sub in subs %}
+                                                <li>
+                                                    <a href="{% url 'product_list' %}?category={{ name|urlencode:'' }}&sub={{ sub|urlencode:'' }}">
+                                                        {{ sub }}
+                                                    </a>
+                                                </li>
+                                            {% endfor %}
+
+                                        </ul>
+
+                                    </li>
+
+                                {% endfor %}
+
+                            </ul>
+
+                            <div class="pm-cat-hint" aria-hidden="true">
+                                <span>👈</span>
+                                왼쪽 카테고리에<br>
+                                마우스를 올려 보세요
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- 자주 찾는 카테고리 바로가기 -->
+                <nav class="pm-cat-quick">
+                    {% for name in quick_categories %}
+                        <a href="{% url 'product_list' %}?category={{ name|urlencode:'' }}"
+                           {% if request.GET.category == name %}class="active"{% endif %}>
+                            {{ name }}
+                        </a>
+                    {% endfor %}
+                </nav>
+
+            </div>
+        </div>
+
     </header>
 
     <!-- 각 페이지의 내용 -->
@@ -92,6 +182,65 @@
             <span>우리 동네에서 시작하는 중고거래</span>
         </div>
     </footer>
+
+    <!-- 카테고리 메뉴: 터치 화면(모바일)에서는 눌러서 열고 닫기 -->
+    <script>
+    (function () {
+
+        var menu = document.getElementById("pm-cat-menu");
+        var trigger = document.getElementById("pm-cat-trigger");
+
+        if (!menu || !trigger) {
+            return;
+        }
+
+        var isTouch = window.matchMedia("(hover: none)").matches;
+
+        function setOpen(open) {
+            menu.classList.toggle("is-open", open);
+            trigger.setAttribute("aria-expanded", open ? "true" : "false");
+        }
+
+        trigger.addEventListener("click", function () {
+            setOpen(!menu.classList.contains("is-open"));
+        });
+
+        // 바깥을 누르거나 ESC를 누르면 닫기
+        document.addEventListener("click", function (event) {
+            if (!menu.contains(event.target)) {
+                setOpen(false);
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                setOpen(false);
+            }
+        });
+
+        // 터치 화면: 대분류를 처음 누르면 소분류를 펼치고,
+        // 소분류의 '전체보기'를 눌러 이동
+        if (isTouch) {
+            menu.querySelectorAll(".pm-cat-link").forEach(function (link) {
+                link.addEventListener("click", function (event) {
+                    var item = link.parentElement;
+
+                    if (!item.classList.contains("is-active")) {
+                        event.preventDefault();
+
+                        menu.querySelectorAll(".pm-cat-item.is-active")
+                            .forEach(function (other) {
+                                other.classList.remove("is-active");
+                            });
+
+                        item.classList.add("is-active");
+                    }
+                });
+            });
+        }
+
+    })();
+    </script>
 
 </body>
 

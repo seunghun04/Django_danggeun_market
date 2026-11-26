@@ -3579,7 +3579,7 @@ button {
     flex-direction: column;
     gap: 16px;
     position: sticky;
-    top: 24px;
+    top: 140px; /* 상단 고정 메뉴(헤더+카테고리 바) 아래 */
 }
 
 .pm-my-profile-card {
@@ -4410,4 +4410,364 @@ button {
         100% { left: 0; }
     }
 
+}
+
+
+/* =========================================
+   POLY MARKET - 상단 카테고리 메뉴 (번개장터 형식)
+========================================= */
+
+.pm-catbar {
+    border-top: 1px solid #f3f0ed;
+    background: white;
+}
+
+.pm-catbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    min-height: 50px;
+}
+
+/* ☰ 카테고리 버튼 */
+
+.pm-cat-menu {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.pm-cat-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 50px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+}
+
+.pm-cat-burger {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 17px;
+    height: 13px;
+}
+
+.pm-cat-burger span {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.pm-cat-menu:hover .pm-cat-trigger,
+.pm-cat-menu.is-open .pm-cat-trigger {
+    color: var(--primary);
+}
+
+/* 열렸을 때 삼선 → X */
+.pm-cat-menu:hover .pm-cat-burger span:nth-child(1),
+.pm-cat-menu.is-open .pm-cat-burger span:nth-child(1) {
+    transform: translateY(5.5px) rotate(45deg);
+}
+
+.pm-cat-menu:hover .pm-cat-burger span:nth-child(2),
+.pm-cat-menu.is-open .pm-cat-burger span:nth-child(2) {
+    opacity: 0;
+}
+
+.pm-cat-menu:hover .pm-cat-burger span:nth-child(3),
+.pm-cat-menu.is-open .pm-cat-burger span:nth-child(3) {
+    transform: translateY(-5.5px) rotate(-45deg);
+}
+
+/* 펼쳐지는 메뉴 */
+
+.pm-cat-dropdown {
+    --cat-left: 210px;
+
+    position: absolute;
+    top: 100%;
+    left: -12px;
+    padding-top: 6px; /* 버튼과 메뉴 사이 마우스 이동 통로 */
+    z-index: 200;
+
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transform-origin: top left;
+    transition:
+        opacity 0.22s ease,
+        transform 0.22s ease,
+        visibility 0s linear 0.22s;
+}
+
+.pm-cat-menu:hover .pm-cat-dropdown,
+.pm-cat-menu.is-open .pm-cat-dropdown {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        opacity 0.22s ease,
+        transform 0.22s ease,
+        visibility 0s;
+}
+
+.pm-cat-panel {
+    position: relative;
+    width: 500px;
+    height: 450px;
+    background: white;
+    border: 1px solid #efebe8;
+    border-radius: 16px;
+    box-shadow: 0 18px 50px rgba(34, 37, 42, 0.14);
+    overflow: hidden;
+}
+
+/* 왼쪽: 대분류 */
+
+.pm-cat-main {
+    list-style: none;
+    margin: 0;
+    padding: 10px 8px;
+    width: var(--cat-left);
+    height: 100%;
+    overflow-y: auto;
+    border-right: 1px solid #f1eeeb;
+}
+
+.pm-cat-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 12px;
+    border-radius: 9px;
+    font-size: 14px;
+    color: #4a4d52;
+}
+
+.pm-cat-arrow {
+    color: #c9c4c0;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.pm-cat-item:hover > .pm-cat-link,
+.pm-cat-item.is-active > .pm-cat-link {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+.pm-cat-item:hover .pm-cat-arrow,
+.pm-cat-item.is-active .pm-cat-arrow {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--primary);
+}
+
+/* 오른쪽: 소분류 (대분류에 마우스를 올리면 표시) */
+
+.pm-cat-sub {
+    display: none;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--cat-left);
+    right: 0;
+    margin: 0;
+    padding: 18px 20px;
+    list-style: none;
+    background: white;
+    overflow-y: auto;
+    z-index: 1;
+    animation: pm-cat-sub-in 0.18s ease;
+}
+
+.pm-cat-item:hover > .pm-cat-sub,
+.pm-cat-item.is-active > .pm-cat-sub {
+    display: block;
+}
+
+@keyframes pm-cat-sub-in {
+    from { opacity: 0; transform: translateX(-6px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.pm-cat-sub-title {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+
+.pm-cat-sub a {
+    display: block;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #5b5f66;
+}
+
+.pm-cat-sub a:hover {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.pm-cat-sub .pm-cat-all {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    padding-top: 2px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #f3efec;
+    padding-bottom: 12px;
+}
+
+/* 아무 것도 안 올렸을 때 오른쪽 안내 */
+.pm-cat-hint {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--cat-left);
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #b3ada8;
+}
+
+.pm-cat-hint span {
+    font-size: 26px;
+}
+
+/* 자주 찾는 카테고리 바로가기 */
+
+.pm-cat-quick {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.pm-cat-quick::-webkit-scrollbar {
+    display: none;
+}
+
+.pm-cat-quick a {
+    white-space: nowrap;
+    font-size: 15px;
+    font-weight: 700;
+    color: #3d4046;
+    padding: 14px 0;
+    border-bottom: 2px solid transparent;
+}
+
+.pm-cat-quick a:hover,
+.pm-cat-quick a.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* 카테고리 메뉴 반응형 */
+
+@media (max-width: 800px) {
+
+    .pm-catbar-inner {
+        gap: 20px;
+    }
+
+    .pm-cat-quick {
+        gap: 18px;
+    }
+
+    .pm-cat-quick a {
+        font-size: 14px;
+    }
+
+}
+
+@media (max-width: 560px) {
+
+    /* 작은 화면: 메뉴를 화면 폭에 맞춰 펼침 */
+    .pm-catbar-inner {
+        position: relative;
+    }
+
+    .pm-cat-menu {
+        position: static;
+    }
+
+    .pm-cat-dropdown {
+        --cat-left: 42%;
+        left: 0;
+        right: 0;
+    }
+
+    .pm-cat-panel {
+        width: 100%;
+        height: min(420px, 60vh);
+    }
+
+    .pm-cat-link {
+        padding: 9px 8px;
+        font-size: 13px;
+    }
+
+    .pm-cat-sub {
+        padding: 14px;
+    }
+
+    .pm-cat-hint {
+        font-size: 12px;
+    }
+
+}
+
+
+/* 카테고리 상품 목록: 제목과 소분류 칩 */
+
+.pm-cat-heading-sub {
+    color: var(--primary);
+    font-size: 0.8em;
+}
+
+.pm-cat-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: -20px 0 28px;
+}
+
+.pm-cat-chips a {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5b5f66;
+    transition: all 0.15s ease;
+}
+
+.pm-cat-chips a:hover {
+    border-color: #ffcdb1;
+    color: var(--primary);
+}
+
+.pm-cat-chips a.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
 }

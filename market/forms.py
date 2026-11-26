@@ -103,9 +103,16 @@ class SignUpForm(UserCreationForm):
 
 from django.conf import settings
 from .models import Product
+from .categories import CHOICE_SEPARATOR, get_form_choices, is_valid_category
 
 
 class ProductForm(forms.ModelForm):
+
+    # "대분류|소분류" 형식으로 선택 → 저장할 때 두 칸으로 나눠 저장
+    category_choice = forms.ChoiceField(
+        choices=get_form_choices,
+        label="카테고리"
+    )
 
     image = forms.ImageField(
         required=False,
@@ -117,6 +124,7 @@ class ProductForm(forms.ModelForm):
 
         fields = [
             "title",
+            "category_choice",
             "content",
             "region",
             "price",
@@ -131,6 +139,45 @@ class ProductForm(forms.ModelForm):
             "price": "판매 가격",
             "negotiable": "네고 가능",
         }
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        # 수정 화면: 기존 카테고리를 선택된 상태로 표시
+        if self.instance.pk and self.instance.category:
+            self.initial["category_choice"] = (
+                f"{self.instance.category}"
+                f"{CHOICE_SEPARATOR}"
+                f"{self.instance.subcategory}"
+            )
+
+    def clean_category_choice(self):
+
+        value = self.cleaned_data.get("category_choice", "")
+
+        category, _, subcategory = value.partition(CHOICE_SEPARATOR)
+
+        if not is_valid_category(category, subcategory):
+            raise forms.ValidationError("올바른 카테고리를 선택해 주세요.")
+
+        return value
+
+    def save(self, commit=True):
+
+        product = super().save(commit=False)
+
+        category, _, subcategory = self.cleaned_data[
+            "category_choice"
+        ].partition(CHOICE_SEPARATOR)
+
+        product.category = category
+        product.subcategory = subcategory
+
+        if commit:
+            product.save()
+
+        return product
 
     def clean_image(self):
 

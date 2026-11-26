@@ -83,6 +83,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # 모든 페이지 상단 카테고리 메뉴
+                'market.context_processors.categories',
             ],
         },
     },

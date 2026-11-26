@@ -13,8 +13,21 @@
 
             <div>
                 <span class="pm-page-label">SECONDHAND MARKET</span>
-                <h1>우리 동네 중고거래</h1>
-                <p>이웃들이 등록한 다양한 상품을 만나보세요.</p>
+
+                {% if current_category %}
+                    <h1>
+                        {{ current_category }}
+                        {% if current_subcategory %}
+                            <span class="pm-cat-heading-sub">› {{ current_subcategory }}</span>
+                        {% endif %}
+                    </h1>
+                    <p>
+                        <a href="{% url 'product_list' %}" class="pm-text-link">← 전체 상품 보기</a>
+                    </p>
+                {% else %}
+                    <h1>우리 동네 중고거래</h1>
+                    <p>이웃들이 등록한 다양한 상품을 만나보세요.</p>
+                {% endif %}
             </div>
 
             <a href="{% url 'product_create' %}"
@@ -24,10 +37,26 @@
 
         </div>
 
+        {% if current_category %}
+            <!-- 소분류 선택 칩 -->
+            <div class="pm-cat-chips">
+                <a href="{% url 'product_list' %}?category={{ current_category|urlencode:'' }}"
+                   class="{% if not current_subcategory %}active{% endif %}">
+                    전체
+                </a>
+                {% for sub in subcategories %}
+                    <a href="{% url 'product_list' %}?category={{ current_category|urlencode:'' }}&sub={{ sub|urlencode:'' }}"
+                       class="{% if sub == current_subcategory %}active{% endif %}">
+                        {{ sub }}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <div class="pm-list-toolbar">
 
             <div>
-                <strong>전체 상품</strong>
+                <strong>{% if current_category %}{{ current_subcategory|default:current_category }}{% else %}전체 상품{% endif %}</strong>
                 <span>{{ products|length }}개의 상품</span>
             </div>
 
@@ -95,7 +124,7 @@
 
                 <div class="pm-empty">
                     <div>📦</div>
-                    <h3>아직 등록된 상품이 없습니다.</h3>
+                    <h3>{% if current_category %}이 카테고리에는 아직 상품이 없습니다.{% else %}아직 등록된 상품이 없습니다.{% endif %}</h3>
                     <p>첫 번째 상품을 등록해 보세요.</p>
 
                     <a href="{% url 'product_create' %}"

@@ -15,6 +15,14 @@
             <span>›</span>
             <a href="{% url 'product_list' %}">중고거래</a>
             <span>›</span>
+            {% if product.category %}
+                <a href="{% url 'product_list' %}?category={{ product.category|urlencode:'' }}">{{ product.category }}</a>
+                <span>›</span>
+                {% if product.subcategory %}
+                    <a href="{% url 'product_list' %}?category={{ product.category|urlencode:'' }}&sub={{ product.subcategory|urlencode:'' }}">{{ product.subcategory }}</a>
+                    <span>›</span>
+                {% endif %}
+            {% endif %}
             <span>상품 상세</span>
         </div>
 

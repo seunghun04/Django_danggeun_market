@@ -17,6 +17,7 @@ class ProductAdmin(admin.ModelAdmin):
         "title",
         "seller",
         "region",
+        "category",
         "price",
         "negotiable",
         "view_count",
@@ -31,6 +32,7 @@ class ProductAdmin(admin.ModelAdmin):
     ]
 
     list_filter = [
+        "category",
         "negotiable",
         "region",
         "created_at",

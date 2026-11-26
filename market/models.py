@@ -47,6 +47,23 @@ class Product(models.Model):
         max_length=100
     )
 
+    # 카테고리 (market/categories.py 목록 사용)
+    # 기존 상품은 빈 값("") = 미분류
+    category = models.CharField(
+        max_length=30,
+        blank=True,
+        default="",
+        db_index=True,
+        verbose_name="카테고리"
+    )
+
+    subcategory = models.CharField(
+        max_length=30,
+        blank=True,
+        default="",
+        verbose_name="세부 카테고리"
+    )
+
     price = models.PositiveIntegerField()
 
     negotiable = models.BooleanField(

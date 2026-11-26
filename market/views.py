@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from .models import Product, Wishlist, ChatRoom, Profile
 from .forms import SignUpForm, ProductForm
 from .storage import upload_product_image
+from .categories import get_subcategories
 from django.db import transaction
 from django.utils.http import url_has_allowed_host_and_scheme
 
@@ -202,10 +203,32 @@ def logout_view(request):
 def product_list(request):
     products = Product.objects.select_related("seller").all()
 
+    # 카테고리 필터 (?category=대분류&sub=소분류)
+    category = request.GET.get("category", "").strip()
+    subcategory = request.GET.get("sub", "").strip()
+    subcategories = get_subcategories(category)
+
+    if subcategories is None:
+        # 목록에 없는 카테고리는 무시하고 전체 상품 표시
+        category = ""
+        subcategory = ""
+    else:
+        products = products.filter(category=category)
+
+        if subcategory in subcategories:
+            products = products.filter(subcategory=subcategory)
+        else:
+            subcategory = ""
+
     return render(
         request,
         "market/product_list.html",
-        {"products": products}
+        {
+            "products": products,
+            "current_category": category,
+            "current_subcategory": subcategory,
+            "subcategories": subcategories or [],
+        }
     )
 
 
