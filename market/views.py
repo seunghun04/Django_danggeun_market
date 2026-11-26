@@ -9,20 +9,48 @@ from django.http import HttpResponse
 from .models import Product, Wishlist, ChatRoom, Profile
 from .forms import SignUpForm, ProductForm
 from .storage import upload_product_image
+from django.db import transaction
+from django.utils.http import url_has_allowed_host_and_scheme
 
-from django.shortcuts import   render, redirect
 
-from django.contrib.auth import (
-    authenticate,
-    login,
-    logout,
-)
+def get_safe_next_url(request):
+    """로그인 후 돌아갈 주소(next)가 우리 사이트 주소일 때만 사용"""
 
-from django.contrib import messages
+    next_url = (
+        request.POST.get("next")
+        or request.GET.get("next")
+        or ""
+    )
 
-from .forms import SignUpForm
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
 
-def state(requset):
+    return ""
+
+
+def save_product_image(form, product, image, user_id):
+    """
+    Supabase에 사진을 올리고 URL을 저장합니다.
+    실패하면 500 오류 대신 폼에 오류 메시지를 표시하도록 False를 돌려줍니다.
+    """
+
+    try:
+        product.image_url = upload_product_image(image, user_id)
+    except Exception:
+        form.add_error(
+            "image",
+            "사진 업로드에 실패했습니다. 잠시 후 다시 시도해 주세요."
+        )
+        return False
+
+    return True
+
+
+def state(request):
     return HttpResponse("server OK", content_type = "text/plain")
 
 def main(request):
@@ -86,7 +114,9 @@ def signup(request):
 
         if form.is_valid():
 
-            user = form.save()
+            # User와 Profile을 한 번에 저장 (중간에 실패하면 둘 다 취소)
+            with transaction.atomic():
+                user = form.save()
 
             login(
                 request,
@@ -108,10 +138,12 @@ def signup(request):
 
 def login_view(request):
 
+    next_url = get_safe_next_url(request)
+
     if request.user.is_authenticated:
 
         return redirect(
-            "main"
+            next_url or "main"
         )
 
 
@@ -140,8 +172,9 @@ def login_view(request):
                 user
             )
 
+            # 로그인 전에 가려던 페이지가 있으면 그곳으로 이동
             return redirect(
-                "main"
+                next_url or "main"
             )
 
 
@@ -153,7 +186,10 @@ def login_view(request):
 
     return render(
         request,
-        "market/login.html"
+        "market/login.html",
+        {
+            "next": next_url
+        }
     )
 
 def logout_view(request):
@@ -184,18 +220,23 @@ def product_create(request):
 
             image = form.cleaned_data.get("image")
 
+            upload_ok = True
+
             if image:
-                product.image_url = upload_product_image(
+                upload_ok = save_product_image(
+                    form,
+                    product,
                     image,
                     request.user.id
                 )
 
-            product.save()
+            if upload_ok:
+                product.save()
 
-            return redirect(
-                "product_detail",
-                product_id=product.id
-            )
+                return redirect(
+                    "product_detail",
+                    product_id=product.id
+                )
     else:
         form = ProductForm()
 
@@ -265,21 +306,25 @@ def product_update(request, product_id):
                 "image"
             )
 
+            upload_ok = True
+
             if image:
 
-                product.image_url = (
-                    upload_product_image(
-                        image,
-                        request.user.id
-                    )
+                upload_ok = save_product_image(
+                    form,
+                    product,
+                    image,
+                    request.user.id
                 )
 
-            product.save()
+            if upload_ok:
 
-            return redirect(
-                "product_detail",
-                product_id=product.id
-            )
+                product.save()
+
+                return redirect(
+                    "product_detail",
+                    product_id=product.id
+                )
 
     else:
 

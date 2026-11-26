@@ -28,9 +28,16 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Render는 서버에 RENDER 환경변수를 자동으로 넣어 줍니다.
+# - 내 컴퓨터(로컬): 기존처럼 DEBUG = True
+# - Render(운영): DEBUG = False → 오류 상세 화면(코드/설정)이 외부에 노출되지 않음
+# - 필요하면 환경변수 DEBUG=True / False 로 직접 지정할 수 있습니다.
+IS_RENDER = bool(os.getenv("RENDER"))
 
-ALLOWED_HOSTS = []
+DEBUG = os.getenv(
+    "DEBUG",
+    "False" if IS_RENDER else "True"
+).lower() == "true"
 
 
 # Application definition
@@ -145,15 +152,30 @@ render_host = os.getenv(
     "RENDER_EXTERNAL_HOSTNAME"
 )
 
+CSRF_TRUSTED_ORIGINS = []
+
 if render_host:
     ALLOWED_HOSTS.append(render_host)
+
+    # Render는 HTTPS를 프록시에서 처리하므로,
+    # 로그인·상품등록 같은 POST 요청이 CSRF 검사에서 막히지 않도록 설정
+    CSRF_TRUSTED_ORIGINS.append(f"https://{render_host}")
+
+if IS_RENDER:
+    # Render 프록시가 알려주는 "원래 요청은 HTTPS" 정보를 신뢰
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    # 로그인 쿠키를 HTTPS에서만 전송
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'UTC'
+# 화면에 표시되는 시간을 한국 시간으로 (DB에는 기존처럼 UTC로 저장됨)
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -171,3 +193,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 상품 사진 최대 용량 (market/forms.py 에서 사용)
+MAX_PRODUCT_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB

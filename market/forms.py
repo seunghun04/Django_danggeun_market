@@ -100,7 +100,8 @@ class SignUpForm(UserCreationForm):
 
         return user
 
-    from django import forms
+
+from django.conf import settings
 from .models import Product
 
 
@@ -130,3 +131,20 @@ class ProductForm(forms.ModelForm):
             "price": "판매 가격",
             "negotiable": "네고 가능",
         }
+
+    def clean_image(self):
+
+        image = self.cleaned_data.get("image")
+
+        max_size = getattr(
+            settings,
+            "MAX_PRODUCT_IMAGE_SIZE",
+            10 * 1024 * 1024
+        )
+
+        if image and image.size > max_size:
+            raise forms.ValidationError(
+                f"사진은 {max_size // (1024 * 1024)}MB 이하만 올릴 수 있습니다."
+            )
+
+        return image

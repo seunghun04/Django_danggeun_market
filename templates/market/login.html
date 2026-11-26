@@ -99,6 +99,11 @@
 
                     {% csrf_token %}
 
+                    <!-- 로그인 후 돌아갈 페이지 -->
+                    {% if next %}
+                        <input type="hidden" name="next" value="{{ next }}">
+                    {% endif %}
+
                     <!-- 아이디 -->
                     <div class="pm-input-group">
 

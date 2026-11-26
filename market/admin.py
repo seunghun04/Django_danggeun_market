@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import (
+    Profile,
     Product,
     Wishlist,
     ChatRoom,
@@ -36,6 +37,7 @@ class ProductAdmin(admin.ModelAdmin):
     ]
 
 
+admin.site.register(Profile)
 admin.site.register(Wishlist)
 admin.site.register(ChatRoom)
 admin.site.register(ChatMessage)
