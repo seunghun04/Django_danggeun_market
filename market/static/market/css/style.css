@@ -4539,6 +4539,12 @@ button {
     height: 100%;
     overflow-y: auto;
     border-right: 1px solid #f1eeeb;
+    scrollbar-width: thin;
+    scrollbar-color: #e3ddd8 transparent;
+}
+
+.pm-cat-link:hover {
+    color: var(--primary-dark);
 }
 
 .pm-cat-link {
@@ -4558,14 +4564,12 @@ button {
     transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.pm-cat-item:hover > .pm-cat-link,
 .pm-cat-item.is-active > .pm-cat-link {
     background: var(--primary-light);
     color: var(--primary-dark);
     font-weight: 700;
 }
 
-.pm-cat-item:hover .pm-cat-arrow,
 .pm-cat-item.is-active .pm-cat-arrow {
     opacity: 1;
     transform: translateX(0);
@@ -4590,7 +4594,6 @@ button {
     animation: pm-cat-sub-in 0.18s ease;
 }
 
-.pm-cat-item:hover > .pm-cat-sub,
 .pm-cat-item.is-active > .pm-cat-sub {
     display: block;
 }

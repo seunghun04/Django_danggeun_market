@@ -183,7 +183,9 @@
         </div>
     </footer>
 
-    <!-- 카테고리 메뉴: 터치 화면(모바일)에서는 눌러서 열고 닫기 -->
+    <!-- 카테고리 메뉴 동작
+         - 마우스: 올리면 열림, 대분류에 올리면 소분류 표시(마지막 선택 유지)
+         - 터치(모바일): 눌러서 열고, 대분류를 누르면 소분류 표시 -->
     <script>
     (function () {
 
@@ -194,16 +196,86 @@
             return;
         }
 
+        var items = menu.querySelectorAll(".pm-cat-item");
         var isTouch = window.matchMedia("(hover: none)").matches;
+        var closeTimer = null;
+        var activateTimer = null;
+
+        function activate(item) {
+            items.forEach(function (other) {
+                other.classList.toggle("is-active", other === item);
+            });
+        }
 
         function setOpen(open) {
             menu.classList.toggle("is-open", open);
             trigger.setAttribute("aria-expanded", open ? "true" : "false");
+
+            if (!open) {
+                activate(null);
+            }
         }
 
+        // 버튼: 터치는 열기/닫기 전환, 마우스는 열기
         trigger.addEventListener("click", function () {
-            setOpen(!menu.classList.contains("is-open"));
+            if (isTouch) {
+                setOpen(!menu.classList.contains("is-open"));
+            } else {
+                setOpen(true);
+            }
         });
+
+        if (!isTouch) {
+
+            // 메뉴 위에 있으면 열고, 벗어나면 0.25초 뒤에 닫기
+            menu.addEventListener("mouseenter", function () {
+                clearTimeout(closeTimer);
+                setOpen(true);
+            });
+
+            menu.addEventListener("mouseleave", function () {
+                clearTimeout(activateTimer);
+                closeTimer = setTimeout(function () {
+                    setOpen(false);
+                }, 250);
+            });
+
+            // 대분류에 마우스를 올리면 소분류 표시
+            // (오른쪽으로 대각선 이동 중 다른 항목을 스쳐도 바로 바뀌지 않도록 짧게 대기)
+            items.forEach(function (item) {
+                item.addEventListener("mouseenter", function () {
+                    clearTimeout(activateTimer);
+
+                    var hasActive = menu.querySelector(".pm-cat-item.is-active");
+
+                    activateTimer = setTimeout(function () {
+                        activate(item);
+                    }, hasActive ? 120 : 0);
+                });
+            });
+
+            // 소분류 영역에 들어오면 대기 중인 전환 취소
+            menu.querySelectorAll(".pm-cat-sub").forEach(function (sub) {
+                sub.addEventListener("mouseenter", function () {
+                    clearTimeout(activateTimer);
+                });
+            });
+
+        } else {
+
+            // 터치: 대분류를 처음 누르면 소분류 표시, '전체보기'로 이동
+            menu.querySelectorAll(".pm-cat-link").forEach(function (link) {
+                link.addEventListener("click", function (event) {
+                    var item = link.parentElement;
+
+                    if (!item.classList.contains("is-active")) {
+                        event.preventDefault();
+                        activate(item);
+                    }
+                });
+            });
+
+        }
 
         // 바깥을 누르거나 ESC를 누르면 닫기
         document.addEventListener("click", function (event) {
@@ -217,27 +289,6 @@
                 setOpen(false);
             }
         });
-
-        // 터치 화면: 대분류를 처음 누르면 소분류를 펼치고,
-        // 소분류의 '전체보기'를 눌러 이동
-        if (isTouch) {
-            menu.querySelectorAll(".pm-cat-link").forEach(function (link) {
-                link.addEventListener("click", function (event) {
-                    var item = link.parentElement;
-
-                    if (!item.classList.contains("is-active")) {
-                        event.preventDefault();
-
-                        menu.querySelectorAll(".pm-cat-item.is-active")
-                            .forEach(function (other) {
-                                other.classList.remove("is-active");
-                            });
-
-                        item.classList.add("is-active");
-                    }
-                });
-            });
-        }
 
     })();
     </script>
