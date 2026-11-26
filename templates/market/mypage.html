@@ -1,0 +1,275 @@
+{% extends "market/base.html" %}
+{% load humanize %}
+
+{% block title %}마이페이지 | Poly Market{% endblock %}
+
+{% block content %}
+
+<div class="pm-page pm-my-page">
+
+    <div class="container">
+
+        <div class="pm-page-heading">
+
+            <div>
+                <span class="pm-page-label">MY PAGE</span>
+                <h1>내 상점</h1>
+                <p>내가 올린 상품과 찜한 상품을 한눈에 관리하세요.</p>
+            </div>
+
+            <a href="{% url 'product_create' %}"
+               class="btn btn-primary">
+                + 판매글 작성
+            </a>
+
+        </div>
+
+
+        <div class="pm-my-layout">
+
+            <!-- 왼쪽: 프로필 카드 -->
+            <aside class="pm-my-sidebar">
+
+                <div class="pm-my-profile-card">
+
+                    <div class="pm-my-avatar">
+                        {{ user.username|first|upper }}
+                    </div>
+
+                    <h2 class="pm-my-name">
+                        {% if user.first_name %}
+                            {{ user.first_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </h2>
+
+                    <p class="pm-my-username">@{{ user.username }}</p>
+
+                    <span class="pm-my-badge">
+                        🌱 가입 {{ days_since_join }}일째
+                    </span>
+
+                    <dl class="pm-my-info">
+
+                        <div>
+                            <dt>가입일</dt>
+                            <dd>{{ user.date_joined|date:"Y.m.d" }}</dd>
+                        </div>
+
+                        {% if masked_phone %}
+                            <div>
+                                <dt>휴대폰</dt>
+                                <dd>{{ masked_phone }}</dd>
+                            </div>
+                        {% endif %}
+
+                        {% if profile.birth_date %}
+                            <div>
+                                <dt>생년월일</dt>
+                                <dd>{{ profile.birth_date|date:"Y.m.d" }}</dd>
+                            </div>
+                        {% endif %}
+
+                    </dl>
+
+                </div>
+
+
+                <!-- 상점 통계 -->
+                <div class="pm-my-stats">
+
+                    <div class="pm-my-stat">
+                        <strong>{{ stats.selling_count }}</strong>
+                        <span>판매상품</span>
+                    </div>
+
+                    <div class="pm-my-stat">
+                        <strong>{{ stats.received_wish_count }}</strong>
+                        <span>받은 찜</span>
+                    </div>
+
+                    <div class="pm-my-stat">
+                        <strong>{{ stats.total_views|intcomma }}</strong>
+                        <span>총 조회수</span>
+                    </div>
+
+                    <div class="pm-my-stat">
+                        <strong>{{ stats.chat_count }}</strong>
+                        <span>채팅</span>
+                    </div>
+
+                </div>
+
+
+                <!-- 바로가기 -->
+                <nav class="pm-my-menu">
+
+                    <a href="{% url 'chat_list' %}">
+                        <span>💬 내 채팅</span>
+                        <span class="pm-my-menu-arrow">›</span>
+                    </a>
+
+                    <a href="{% url 'product_create' %}">
+                        <span>📦 상품 등록하기</span>
+                        <span class="pm-my-menu-arrow">›</span>
+                    </a>
+
+                    <a href="?tab=wishlist">
+                        <span>♡ 찜한 상품 보기</span>
+                        <span class="pm-my-menu-arrow">›</span>
+                    </a>
+
+                </nav>
+
+            </aside>
+
+
+            <!-- 오른쪽: 탭 + 상품 목록 -->
+            <section class="pm-my-content">
+
+                <div class="pm-my-tabs" role="tablist">
+
+                    <a href="?tab=selling&sort={{ sort }}"
+                       class="pm-my-tab {% if tab == 'selling' %}active{% endif %}"
+                       role="tab">
+                        판매상품
+                        <em>{{ stats.selling_count }}</em>
+                    </a>
+
+                    <a href="?tab=wishlist&sort={{ sort }}"
+                       class="pm-my-tab {% if tab == 'wishlist' %}active{% endif %}"
+                       role="tab">
+                        찜한 상품
+                        <em>{{ stats.wishlist_count }}</em>
+                    </a>
+
+                </div>
+
+
+                <div class="pm-my-toolbar">
+
+                    <strong>
+                        {% if tab == 'wishlist' %}찜한 상품{% else %}상품{% endif %}
+                        <span>{{ products|length }}</span>
+                    </strong>
+
+                    <div class="pm-my-sort">
+                        {% for key, label in sort_options %}
+                            <a href="?tab={{ tab }}&sort={{ key }}"
+                               class="{% if sort == key %}active{% endif %}">
+                                {{ label }}
+                            </a>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+
+                <div class="pm-product-grid pm-my-grid">
+
+                    {% for product in products %}
+
+                        <div class="pm-my-card-wrap">
+
+                            <a href="{% url 'product_detail' product.id %}"
+                               class="pm-product-card">
+
+                                <div class="pm-product-image">
+
+                                    {% if product.image_url %}
+                                        <img src="{{ product.image_url }}"
+                                             alt="{{ product.title }}"
+                                             loading="lazy">
+                                    {% else %}
+                                        <div class="pm-no-image">📦</div>
+                                    {% endif %}
+
+                                </div>
+
+                                <div class="pm-product-info">
+
+                                    <h3>{{ product.title }}</h3>
+
+                                    <p class="pm-product-region">
+                                        📍 {{ product.region }}
+                                        {% if tab == 'wishlist' %}
+                                            · {{ product.seller.username }}
+                                        {% endif %}
+                                    </p>
+
+                                    <strong class="pm-product-price">
+                                        {{ product.price|intcomma }}원
+                                    </strong>
+
+                                    <div class="pm-product-meta">
+
+                                        <span>
+                                            {{ product.created_at|timesince }} 전
+                                        </span>
+
+                                        <span>
+                                            조회 {{ product.view_count }}
+                                            · ♡ {{ product.wish_total }}
+                                            · 💬 {{ product.chat_total }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </a>
+
+                            {% if tab == 'selling' %}
+                                <div class="pm-my-card-actions">
+                                    <a href="{% url 'product_update' product.id %}">수정</a>
+                                    <a href="{% url 'product_delete' product.id %}"
+                                       class="danger">삭제</a>
+                                </div>
+                            {% endif %}
+
+                        </div>
+
+                    {% empty %}
+
+                        <div class="pm-empty">
+
+                            {% if tab == 'wishlist' %}
+
+                                <div>♡</div>
+                                <h3>아직 찜한 상품이 없습니다.</h3>
+                                <p>마음에 드는 상품에 찜을 눌러 보세요.</p>
+
+                                <a href="{% url 'product_list' %}"
+                                   class="btn btn-primary">
+                                    상품 둘러보기
+                                </a>
+
+                            {% else %}
+
+                                <div>📦</div>
+                                <h3>아직 등록한 상품이 없습니다.</h3>
+                                <p>사용하지 않는 물건을 이웃에게 판매해 보세요.</p>
+
+                                <a href="{% url 'product_create' %}"
+                                   class="btn btn-primary">
+                                    상품 등록하기
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

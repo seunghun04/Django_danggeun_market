@@ -3554,3 +3554,315 @@ button {
     }
 
 }
+
+
+/* =========================================
+   POLY MARKET - 마이페이지 (내 상점)
+   ※ 기존 스타일은 건드리지 않고 pm-my- 클래스만 추가
+========================================= */
+
+.nav-mypage-link:hover {
+    color: var(--primary);
+}
+
+.pm-my-layout {
+    display: grid;
+    grid-template-columns: 290px minmax(0, 1fr);
+    gap: 36px;
+    align-items: start;
+}
+
+/* 왼쪽 사이드바 */
+
+.pm-my-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 24px;
+}
+
+.pm-my-profile-card {
+    background: white;
+    border: 1px solid #eeeeee;
+    border-radius: 20px;
+    padding: 32px 24px 24px;
+    text-align: center;
+}
+
+.pm-my-avatar {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ff9a6b, var(--primary));
+    color: white;
+    font-size: 34px;
+    font-weight: 800;
+    box-shadow: 0 10px 24px rgba(243, 107, 54, 0.25);
+}
+
+.pm-my-name {
+    margin: 0 0 4px;
+    font-size: 21px;
+    letter-spacing: -0.5px;
+}
+
+.pm-my-username {
+    margin: 0 0 14px;
+    color: #999;
+    font-size: 13px;
+}
+
+.pm-my-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.pm-my-info {
+    margin: 22px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid #f2efec;
+    text-align: left;
+}
+
+.pm-my-info div {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+}
+
+.pm-my-info dt {
+    color: #999;
+}
+
+.pm-my-info dd {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* 통계 */
+
+.pm-my-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.pm-my-stat {
+    background: #fff9f5;
+    border: 1px solid #ffe3d3;
+    border-radius: 14px;
+    padding: 16px 10px;
+    text-align: center;
+}
+
+.pm-my-stat strong {
+    display: block;
+    font-size: 20px;
+    color: var(--primary);
+}
+
+.pm-my-stat span {
+    font-size: 12px;
+    color: #888;
+}
+
+/* 바로가기 메뉴 */
+
+.pm-my-menu {
+    background: white;
+    border: 1px solid #eeeeee;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.pm-my-menu a {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid #f4f1ee;
+}
+
+.pm-my-menu a:last-child {
+    border-bottom: none;
+}
+
+.pm-my-menu a:hover {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.pm-my-menu-arrow {
+    color: #bbb;
+}
+
+/* 오른쪽 탭 */
+
+.pm-my-tabs {
+    display: flex;
+    gap: 28px;
+    border-bottom: 1px solid #ece8e5;
+    margin-bottom: 22px;
+}
+
+.pm-my-tab {
+    padding: 0 2px 14px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #999;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+}
+
+.pm-my-tab em {
+    font-style: normal;
+    font-size: 13px;
+    margin-left: 4px;
+    color: #bbb;
+}
+
+.pm-my-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--primary);
+}
+
+.pm-my-tab.active em {
+    color: var(--primary);
+}
+
+.pm-my-tab:hover {
+    color: var(--text);
+}
+
+/* 정렬 */
+
+.pm-my-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.pm-my-toolbar strong {
+    font-size: 15px;
+}
+
+.pm-my-toolbar strong span {
+    color: var(--primary);
+    margin-left: 4px;
+}
+
+.pm-my-sort {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.pm-my-sort a {
+    font-size: 13px;
+    color: #999;
+    padding: 0 12px;
+    border-left: 1px solid #e5e5e5;
+}
+
+.pm-my-sort a:first-child {
+    border-left: none;
+}
+
+.pm-my-sort a.active {
+    color: var(--text);
+    font-weight: 700;
+}
+
+/* 상품 카드 (기존 pm-product-card 재사용) */
+
+.pm-my-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pm-my-card-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.pm-my-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.pm-my-card-actions a {
+    text-align: center;
+    padding: 9px 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.pm-my-card-actions a:hover {
+    background: var(--primary-light);
+}
+
+.pm-my-card-actions a.danger {
+    color: #d9453a;
+}
+
+/* 마이페이지 반응형 */
+
+@media (max-width: 900px) {
+
+    .pm-my-layout {
+        grid-template-columns: 1fr;
+        gap: 26px;
+    }
+
+    .pm-my-sidebar {
+        position: static;
+    }
+
+    .pm-my-stats {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .pm-my-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 560px) {
+
+    .pm-my-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pm-my-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .pm-my-sort a {
+        padding: 0 8px;
+    }
+
+    .pm-my-sort a:first-child {
+        padding-left: 0;
+    }
+
+}

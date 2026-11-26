@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.db.models import F, Q
+from django.db.models import Count, F, Q, Sum
+from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
-from .models import Product, Wishlist, ChatRoom
+from .models import Product, Wishlist, ChatRoom, Profile
 from .forms import SignUpForm, ProductForm
 from .storage import upload_product_image
 
@@ -445,5 +446,104 @@ def chat_room(request, room_id):
         {
             "room": room,
             "chat_messages": chat_messages,
+        }
+    )
+
+
+# =========================================
+# 마이페이지 (번개장터 '내 상점' 형식)
+# - DB 구조 변경 없이 기존 모델만 조회합니다.
+# =========================================
+
+MYPAGE_SORT_OPTIONS = {
+    "latest": ("최신순", ["-created_at"]),
+    "popular": ("인기순", ["-view_count", "-created_at"]),
+    "low": ("낮은 가격순", ["price", "-created_at"]),
+    "high": ("높은 가격순", ["-price", "-created_at"]),
+}
+
+
+@login_required
+def mypage(request):
+
+    user = request.user
+
+    # 탭: selling(판매상품) / wishlist(찜한 상품)
+    tab = request.GET.get("tab", "selling")
+    if tab not in ("selling", "wishlist"):
+        tab = "selling"
+
+    # 정렬: 잘못된 값이 들어오면 최신순
+    sort = request.GET.get("sort", "latest")
+    if sort not in MYPAGE_SORT_OPTIONS:
+        sort = "latest"
+
+    # 프로필 (관리자 계정처럼 Profile이 없는 사용자도 오류 없이 처리)
+    profile = Profile.objects.filter(user=user).first()
+
+    masked_phone = ""
+    if profile and profile.phone:
+        digits = profile.phone.replace("-", "")
+        if len(digits) >= 8:
+            masked_phone = f"{digits[:3]}-****-{digits[-4:]}"
+        else:
+            masked_phone = profile.phone
+
+    # 판매상품 / 찜한 상품 (찜 수, 채팅 수를 한 번에 계산 → N+1 쿼리 방지)
+    my_products = Product.objects.filter(seller=user)
+    # 주의: filter(wishlists__user=user) 후 Count("wishlists")를 하면
+    # 내 찜 1개만 세어지므로, 상품 id 목록(서브쿼리)으로 걸러냅니다.
+    wished_products = Product.objects.filter(
+        id__in=Wishlist.objects.filter(user=user).values("product_id")
+    )
+
+    if tab == "wishlist":
+        products = wished_products.select_related("seller")
+    else:
+        products = my_products
+
+    products = (
+        products
+        .annotate(
+            wish_total=Count("wishlists", distinct=True),
+            chat_total=Count("chat_rooms", distinct=True),
+        )
+        .order_by(*MYPAGE_SORT_OPTIONS[sort][1])
+    )
+
+    # 상점 통계
+    my_stats = my_products.aggregate(
+        total_views=Sum("view_count"),
+    )
+
+    stats = {
+        "selling_count": my_products.count(),
+        "wishlist_count": wished_products.count(),
+        "received_wish_count": Wishlist.objects.filter(
+            product__seller=user
+        ).count(),
+        "chat_count": ChatRoom.objects.filter(
+            Q(seller=user) | Q(buyer=user)
+        ).count(),
+        "total_views": my_stats["total_views"] or 0,
+    }
+
+    days_since_join = (timezone.now() - user.date_joined).days + 1
+
+    return render(
+        request,
+        "market/mypage.html",
+        {
+            "profile": profile,
+            "masked_phone": masked_phone,
+            "products": products,
+            "tab": tab,
+            "sort": sort,
+            "sort_options": [
+                (key, label)
+                for key, (label, _) in MYPAGE_SORT_OPTIONS.items()
+            ],
+            "stats": stats,
+            "days_since_join": days_since_join,
         }
     )

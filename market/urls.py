@@ -92,6 +92,13 @@ urlpatterns = [
         name="chat_list"
     ),
 
+    # 마이페이지
+    path(
+        "mypage/",
+        views.mypage,
+        name="mypage"
+    ),
+
     # 채팅방
     path(
         "chats/<int:room_id>/",
