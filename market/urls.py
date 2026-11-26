@@ -92,6 +92,20 @@ urlpatterns = [
         name="chat_list"
     ),
 
+    # 사주 / 오늘의 운세
+    path(
+        "fortune/",
+        views.fortune,
+        name="fortune"
+    ),
+
+    # 현재 날씨 (기상청 API)
+    path(
+        "api/weather/",
+        views.weather_api,
+        name="weather_api"
+    ),
+
     # 마이페이지
     path(
         "mypage/",

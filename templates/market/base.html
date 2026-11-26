@@ -164,6 +164,41 @@
                     {% endfor %}
                 </nav>
 
+                <!-- 오른쪽: 오늘의 운세 + 현재 날씨 -->
+                <div class="pm-catbar-extra">
+
+                    <a href="{% url 'fortune' %}" class="pm-fortune-link">
+                        🔮<span class="pm-fortune-link-text"> 오늘의 운세</span>
+                    </a>
+
+                    <div class="pm-weather" id="pm-weather"
+                         data-url="{% url 'weather_api' %}" hidden>
+
+                        <button type="button" class="pm-weather-chip" id="pm-weather-btn"
+                                aria-label="현재 날씨 · 눌러서 내 위치로 보기">
+                            <span class="pm-weather-icon">🌤️</span>
+                            <strong class="pm-weather-temp">--°</strong>
+                            <span class="pm-weather-place">서울</span>
+                        </button>
+
+                        <div class="pm-weather-pop" role="status">
+                            <strong class="pm-weather-cond">날씨 불러오는 중</strong>
+                            <p class="pm-weather-comment"></p>
+                            <dl>
+                                <div><dt>습도</dt><dd class="pm-weather-hum">-</dd></div>
+                                <div><dt>바람</dt><dd class="pm-weather-wind">-</dd></div>
+                                <div><dt>관측</dt><dd class="pm-weather-time">-</dd></div>
+                            </dl>
+                            <button type="button" class="pm-weather-gps" id="pm-weather-gps">
+                                📍 내 위치 날씨로 보기
+                            </button>
+                            <small>출처: 기상청 초단기실황</small>
+                        </div>
+
+                    </div>
+
+                </div>
+
             </div>
         </div>
 
@@ -289,6 +324,130 @@
                 setOpen(false);
             }
         });
+
+    })();
+    </script>
+
+    <!-- 현재 날씨: 기상청 + GPS
+         - 처음에는 서울 날씨, '내 위치' 버튼을 누르면 GPS 권한 요청
+         - 허용한 위치는 이 브라우저에만 저장 -->
+    <script>
+    (function () {
+
+        var box = document.getElementById("pm-weather");
+        if (!box || !window.fetch) {
+            return;
+        }
+
+        var STORE_KEY = "pm-weather-coords";
+        var DEFAULT = { lat: 37.5636, lon: 126.9976, place: "서울" };
+
+        function $(selector) {
+            return box.querySelector(selector);
+        }
+
+        function loadSaved() {
+            try {
+                var saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+                if (saved && typeof saved.lat === "number") {
+                    return saved;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function save(coords) {
+            try {
+                localStorage.setItem(STORE_KEY, JSON.stringify(coords));
+            } catch (e) {}
+        }
+
+        function render(data, place) {
+            $(".pm-weather-icon").textContent = data.icon || "🌤️";
+            $(".pm-weather-temp").textContent =
+                data.temp === null ? "--°" : Math.round(data.temp) + "°";
+            $(".pm-weather-place").textContent = place;
+            $(".pm-weather-cond").textContent =
+                place + " · " + data.condition + " " +
+                (data.temp === null ? "" : data.temp + "℃");
+            $(".pm-weather-comment").textContent = data.comment || "";
+            $(".pm-weather-hum").textContent =
+                data.humidity === null ? "-" : data.humidity + "%";
+            $(".pm-weather-wind").textContent =
+                data.wind === null ? "-" : data.wind + "m/s";
+            $(".pm-weather-time").textContent = data.observed_at || "-";
+            box.hidden = false;
+        }
+
+        function load(coords) {
+            var url = box.dataset.url +
+                "?lat=" + encodeURIComponent(coords.lat.toFixed(4)) +
+                "&lon=" + encodeURIComponent(coords.lon.toFixed(4));
+
+            return fetch(url)
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (data.ok) {
+                        render(data, coords.place);
+                    } else if (console && console.info) {
+                        // 키 미설정 등: 칩을 숨긴 채로 둠
+                        console.info("[날씨] " + data.error);
+                    }
+                    return data;
+                })
+                .catch(function () {});
+        }
+
+        function useGps() {
+            var gpsButton = $("#pm-weather-gps");
+
+            if (!navigator.geolocation) {
+                gpsButton.textContent = "이 브라우저는 위치 기능을 지원하지 않아요";
+                return;
+            }
+
+            gpsButton.textContent = "위치 확인 중…";
+
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    var coords = {
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude,
+                        place: "내 위치"
+                    };
+                    load(coords).then(function (data) {
+                        if (data && data.ok) {
+                            save(coords);
+                            gpsButton.textContent = "📍 위치 새로고침";
+                        } else {
+                            gpsButton.textContent = (data && data.error) || "날씨를 불러오지 못했어요";
+                        }
+                    });
+                },
+                function () {
+                    gpsButton.textContent = "위치 권한이 꺼져 있어 서울 날씨를 보여드려요";
+                },
+                { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
+            );
+        }
+
+        $("#pm-weather-btn").addEventListener("click", function () {
+            box.classList.toggle("is-open");
+        });
+
+        $("#pm-weather-gps").addEventListener("click", useGps);
+
+        document.addEventListener("click", function (event) {
+            if (!box.contains(event.target)) {
+                box.classList.remove("is-open");
+            }
+        });
+
+        var saved = loadSaved();
+        if (saved) {
+            $("#pm-weather-gps").textContent = "📍 위치 새로고침";
+        }
+        load(saved || DEFAULT);
 
     })();
     </script>

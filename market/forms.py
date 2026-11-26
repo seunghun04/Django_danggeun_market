@@ -195,3 +195,55 @@ class ProductForm(forms.ModelForm):
             )
 
         return image
+
+# =========================================
+# 사주 / 오늘의 운세 질문 폼 (DB에 저장하지 않음)
+# =========================================
+
+import datetime as _dt
+
+
+class FortuneForm(forms.Form):
+
+    TOPIC_CHOICES = [
+        ("total", "🔮 전체 운세"),
+        ("money", "💰 재물운"),
+        ("deal", "🤝 거래운"),
+        ("love", "💕 애정운"),
+        ("work", "📚 일·학업운"),
+        ("health", "💪 건강운"),
+    ]
+
+    name = forms.CharField(
+        max_length=20,
+        required=False,
+        label="이름 (선택)",
+        widget=forms.TextInput(attrs={"placeholder": "예: 폴리"})
+    )
+
+    birth_date = forms.DateField(
+        label="생년월일 (양력)",
+        widget=forms.DateInput(attrs={"type": "date"})
+    )
+
+    birth_time = forms.TimeField(
+        required=False,
+        label="태어난 시간 (모르면 비워두세요)",
+        widget=forms.TimeInput(attrs={"type": "time"})
+    )
+
+    topic = forms.ChoiceField(
+        choices=TOPIC_CHOICES,
+        initial="total",
+        label="오늘 가장 궁금한 것",
+        widget=forms.RadioSelect
+    )
+
+    def clean_birth_date(self):
+
+        value = self.cleaned_data["birth_date"]
+
+        if value < _dt.date(1920, 1, 1) or value > _dt.date.today():
+            raise forms.ValidationError("1920년 이후, 오늘 이전 날짜를 입력해 주세요.")
+
+        return value

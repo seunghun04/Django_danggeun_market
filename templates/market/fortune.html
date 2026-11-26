@@ -1,0 +1,278 @@
+{% extends "market/base.html" %}
+
+{% block title %}오늘의 운세 | Poly Market{% endblock %}
+
+{% block content %}
+
+<div class="pm-page pm-fortune-page">
+
+    <div class="container">
+
+        <div class="pm-page-heading">
+            <div>
+                <span class="pm-page-label">TODAY'S FORTUNE</span>
+                <h1>🔮 폴리의 사주 · 오늘의 운세</h1>
+                <p>만세력으로 사주팔자를 풀고, 오늘의 기운과 비교해 운세를 알려드려요.</p>
+            </div>
+            <div class="pm-fortune-date">
+                <strong>{{ today_date|date:"Y년 n월 j일" }}</strong>
+                <span>{{ today_date|date:"l" }}</span>
+            </div>
+        </div>
+
+
+        <div class="pm-fortune-layout">
+
+            <!-- 질문 카드 -->
+            <aside class="pm-fortune-form-card">
+
+                <h2>몇 가지만 알려 주세요</h2>
+                <p class="pm-fortune-form-desc">
+                    입력한 정보는 저장되지 않아요.
+                </p>
+
+                <form method="post" class="pm-fortune-form">
+
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="pm-fortune-error">
+                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="pm-fortune-field">
+                        <label for="{{ form.name.id_for_label }}">Q1. {{ form.name.label }}</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div class="pm-fortune-field">
+                        <label for="{{ form.birth_date.id_for_label }}">Q2. {{ form.birth_date.label }}</label>
+                        {{ form.birth_date }}
+                        <small>음력 생일은 양력으로 바꿔서 입력해 주세요.</small>
+                        {% for error in form.birth_date.errors %}
+                            <span class="pm-fortune-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="pm-fortune-field">
+                        <label for="{{ form.birth_time.id_for_label }}">Q3. {{ form.birth_time.label }}</label>
+                        {{ form.birth_time }}
+                        <small>시간을 알면 시주까지 8글자를 모두 볼 수 있어요.</small>
+                        {% for error in form.birth_time.errors %}
+                            <span class="pm-fortune-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="pm-fortune-field">
+                        <span class="pm-fortune-label">Q4. {{ form.topic.label }}</span>
+                        <div class="pm-topic-chips">
+                            {% for radio in form.topic %}
+                                <label class="pm-topic-chip">
+                                    {{ radio.tag }}
+                                    <span>{{ radio.choice_label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary pm-fortune-submit">
+                        ✨ 운세 보기
+                    </button>
+
+                </form>
+
+            </aside>
+
+
+            <!-- 결과 -->
+            <section class="pm-fortune-result">
+
+                {% if saju %}
+
+                    <!-- 1. 오늘의 운세 -->
+                    <div class="pm-fortune-card pm-fortune-today pm-reveal">
+
+                        <div class="pm-today-head">
+
+                            <div class="pm-score-ring" style="--score: {{ today.total_score }};">
+                                <div>
+                                    <strong>{{ today.total_score }}</strong>
+                                    <span>점</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="pm-fortune-tag">
+                                    오늘 {{ today.day_pillar }} ({{ today.day_pillar_hanja }}) · {{ today.ten_god }}
+                                </span>
+                                <h2>
+                                    {% if name %}{{ name }}님, {% endif %}오늘은
+                                    <em>{{ today.title }}</em>
+                                </h2>
+                                <p>{{ today.summary }}</p>
+                            </div>
+
+                        </div>
+
+                        <div class="pm-topic-answer">
+                            <span>Q. 오늘의 {{ today.topic_label }}은?</span>
+                            <p>{{ today.topic_answer }}</p>
+                        </div>
+
+                        {% if today.relation %}
+                            <p class="pm-today-relation">{{ today.relation }}</p>
+                        {% endif %}
+
+                        <div class="pm-score-bars">
+                            {% for item in today.scores %}
+                                <div class="pm-score-row">
+                                    <span>{{ item.label }}</span>
+                                    <div class="pm-score-track">
+                                        <div class="pm-score-fill" style="--w: {{ item.score }}%;"></div>
+                                    </div>
+                                    <strong>{{ item.score }}</strong>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="pm-fortune-details">
+                            {% for label, text in today.details %}
+                                <div>
+                                    <strong>{{ label }}</strong>
+                                    <p>{{ text }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+
+
+                    <!-- 2. 행운 아이템 -->
+                    <div class="pm-fortune-card pm-reveal" style="--delay: 0.12s;">
+
+                        <h3 class="pm-fortune-card-title">🍀 오늘의 행운</h3>
+
+                        <div class="pm-lucky-grid">
+                            <div class="pm-lucky">
+                                <span class="pm-lucky-swatch" style="background: {{ today.lucky.color_hex }};"></span>
+                                <small>행운의 색</small>
+                                <strong>{{ today.lucky.color }}</strong>
+                            </div>
+                            <div class="pm-lucky">
+                                <span class="pm-lucky-icon">{{ today.lucky.number }}</span>
+                                <small>행운의 숫자</small>
+                                <strong>{{ today.lucky.number }}</strong>
+                            </div>
+                            <div class="pm-lucky">
+                                <span class="pm-lucky-icon">🧭</span>
+                                <small>행운의 방향</small>
+                                <strong>{{ today.lucky.direction }}</strong>
+                            </div>
+                            <div class="pm-lucky">
+                                <span class="pm-lucky-icon">🎁</span>
+                                <small>행운의 아이템</small>
+                                <strong>{{ today.lucky.item }}</strong>
+                            </div>
+                            <div class="pm-lucky">
+                                <span class="pm-lucky-icon">⏰</span>
+                                <small>행운의 시간</small>
+                                <strong>{{ today.lucky.hour }}</strong>
+                            </div>
+                            <a class="pm-lucky pm-lucky-link"
+                               href="{% url 'product_list' %}?category={{ today.lucky.category|urlencode:'' }}">
+                                <span class="pm-lucky-icon">🛍️</span>
+                                <small>행운의 카테고리</small>
+                                <strong>{{ today.lucky.category }} →</strong>
+                            </a>
+                        </div>
+
+                        <p class="pm-fortune-note">
+                            내 사주에 부족한 <b>{{ today.lucky.element }}</b> 기운을 채워 주는 행운이에요.
+                        </p>
+
+                    </div>
+
+
+                    <!-- 3. 사주팔자 -->
+                    <div class="pm-fortune-card pm-reveal" style="--delay: 0.24s;">
+
+                        <h3 class="pm-fortune-card-title">📜 {% if name %}{{ name }}님의 {% endif %}사주팔자</h3>
+
+                        <div class="pm-saju-table">
+                            {% for label, pillar in saju.pillar_list %}
+                                <div class="pm-saju-col {% if label == '일주' %}is-me{% endif %}">
+                                    <span class="pm-saju-label">{{ label }}</span>
+                                    {% if pillar %}
+                                        <div class="pm-saju-char" style="--c: {{ pillar.stem_color }};">
+                                            {{ pillar.hanja|slice:":1" }}
+                                            <small>{{ pillar.text|slice:":1" }}</small>
+                                        </div>
+                                        <div class="pm-saju-char" style="--c: {{ pillar.branch_color }};">
+                                            {{ pillar.hanja|slice:"1:" }}
+                                            <small>{{ pillar.text|slice:"1:" }}</small>
+                                        </div>
+                                    {% else %}
+                                        <div class="pm-saju-char is-empty">?<small>시간 모름</small></div>
+                                        <div class="pm-saju-char is-empty">?<small>&nbsp;</small></div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="pm-day-master">
+                            <div class="pm-day-master-badge">
+                                <span>{{ saju.day_master_info.image }}</span>
+                                <small>나를 뜻하는 글자 (일간)</small>
+                                <strong>{{ saju.day_master_name }}</strong>
+                            </div>
+                            <div>
+                                <p class="pm-day-master-keyword">{{ saju.day_master_info.keyword }}</p>
+                                <p>{{ saju.day_master_info.text }}</p>
+                                <p class="pm-fortune-note">
+                                    {{ saju.zodiac }}띠 · 가장 강한 기운 <b>{{ saju.strongest.name }}({{ saju.strongest.hanja }})</b>
+                                    · 부족한 기운 <b>{{ saju.weakest.name }}({{ saju.weakest.hanja }})</b>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 오행 분포 -->
+                        <div class="pm-element-bars">
+                            {% for el in saju.elements %}
+                                <div class="pm-element-row">
+                                    <span class="pm-element-name" style="color: {{ el.hex }};">{{ el.hanja }} {{ el.name }}</span>
+                                    <div class="pm-score-track">
+                                        <div class="pm-score-fill" style="--w: {{ el.percent }}%; background: {{ el.hex }};"></div>
+                                    </div>
+                                    <strong>{{ el.count }}개</strong>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+
+                    <p class="pm-fortune-disclaimer">
+                        ※ 만세력(절기 기준)으로 계산한 결과이며, 운세 풀이는 재미로만 봐 주세요.
+                        {% if not saju.time_known %}태어난 시간을 모르면 시주는 제외됩니다.{% endif %}
+                    </p>
+
+                {% else %}
+
+                    <!-- 아직 입력 전 -->
+                    <div class="pm-fortune-empty">
+                        <div class="pm-crystal">🔮</div>
+                        <h2>왼쪽 질문에 답하면<br>폴리가 운세를 봐 드려요!</h2>
+                        <p>생년월일만 입력해도 사주와 오늘의 운세를 볼 수 있어요.</p>
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

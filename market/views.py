@@ -10,6 +10,10 @@ from .models import Product, Wishlist, ChatRoom, Profile
 from .forms import SignUpForm, ProductForm
 from .storage import upload_product_image
 from .categories import get_subcategories
+from .forms import FortuneForm
+from . import saju as saju_lib
+from .weather import DEFAULT_LOCATION, WeatherError, get_current_weather
+from django.http import JsonResponse
 from django.db import transaction
 from django.utils.http import url_has_allowed_host_and_scheme
 
@@ -613,5 +617,91 @@ def mypage(request):
             ],
             "stats": stats,
             "days_since_join": days_since_join,
+        }
+    )
+
+
+
+# =========================================
+# 현재 날씨 (기상청) - 화면의 JavaScript가 호출
+# GET /api/weather/?lat=37.5&lon=127.0
+# =========================================
+
+def weather_api(request):
+
+    try:
+        lat = float(request.GET.get("lat", DEFAULT_LOCATION["lat"]))
+        lon = float(request.GET.get("lon", DEFAULT_LOCATION["lon"]))
+    except ValueError:
+        return JsonResponse(
+            {"ok": False, "error": "위치 값이 올바르지 않습니다."},
+            status=400
+        )
+
+    # 기상청 격자는 한국 주변만 지원
+    if not (32.5 <= lat <= 39.5 and 124.0 <= lon <= 132.5):
+        return JsonResponse(
+            {"ok": False, "error": "국내 위치에서만 날씨를 볼 수 있어요."},
+            status=400
+        )
+
+    try:
+        data = get_current_weather(lat, lon)
+    except WeatherError as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=503)
+
+    return JsonResponse(data)
+
+
+# =========================================
+# 사주 + 오늘의 운세 (만세력 기준, 재미용)
+# - 입력한 생년월일은 저장하지 않습니다.
+# =========================================
+
+def fortune(request):
+
+    result = None
+    today_result = None
+
+    if request.method == "POST":
+
+        form = FortuneForm(request.POST)
+
+        if form.is_valid():
+
+            birth_date = form.cleaned_data["birth_date"]
+            birth_time = form.cleaned_data["birth_time"]
+
+            result = saju_lib.calc_saju(birth_date, birth_time)
+
+            today_result = saju_lib.today_fortune(
+                result,
+                birth_date,
+                timezone.localdate(),
+                form.cleaned_data["topic"],
+            )
+
+    else:
+
+        initial = {"topic": "total"}
+
+        # 로그인 사용자는 회원가입 때 입력한 생년월일을 미리 채움
+        if request.user.is_authenticated:
+            profile = Profile.objects.filter(user=request.user).first()
+            if profile:
+                initial["birth_date"] = profile.birth_date
+            initial["name"] = request.user.first_name or request.user.username
+
+        form = FortuneForm(initial=initial)
+
+    return render(
+        request,
+        "market/fortune.html",
+        {
+            "form": form,
+            "saju": result,
+            "today": today_result,
+            "name": form.cleaned_data.get("name") if result else "",
+            "today_date": timezone.localdate(),
         }
     )
